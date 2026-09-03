@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Picture-by-picture: putting your calculator on GitHub</title>
+<style>
+:root{--ink:#20262B;--slate:#5C6670;--line:#D7DCD5;--pine:#0F5C4F;--red:#C4372A;
+--gh-green:#1F883D;--gh-bg:#F6F8FA;--gh-border:#D0D7DE;--gh-blue:#0969DA}
+*{box-sizing:border-box}
+body{margin:0;background:#F5F6F3;color:var(--ink);font:400 16px/1.5 "Public Sans",system-ui,-apple-system,Segoe UI,sans-serif}
+.wrap{max-width:860px;margin:0 auto;padding:34px 22px 70px}
+h1{font-size:27px;line-height:1.2;margin:0 0 6px}
+.lead{color:var(--slate);max-width:62ch;margin:0 0 8px}
+.pill{display:inline-block;background:#E3EEEA;color:var(--pine);font-weight:600;font-size:13px;
+border-radius:99px;padding:2px 12px;margin:10px 0 24px}
+.step{border:1px solid var(--line);background:#fff;border-radius:10px;margin:0 0 26px;overflow:hidden;
+break-inside:avoid;page-break-inside:avoid}
+.step h2{margin:0;padding:14px 18px;font-size:17px;border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:baseline}
+.n{flex:none;width:26px;height:26px;border-radius:50%;background:var(--pine);color:#fff;font-size:14px;
+display:inline-flex;align-items:center;justify-content:center;transform:translateY(4px)}
+.say{padding:12px 18px 0;color:var(--slate);font-size:15px;max-width:70ch}
+.say b{color:var(--ink)}
+.shot{margin:14px 18px 18px;border:1px solid var(--gh-border);border-radius:8px;background:#fff;
+box-shadow:0 3px 14px rgba(32,38,43,.08);overflow:hidden;position:relative;font-size:13px}
+.cap{margin:0 18px 16px;font-size:12.5px;color:var(--slate);font-style:italic}
+/* --- GitHub mock pieces --- */
+.ghbar{background:#fff;border-bottom:1px solid var(--gh-border);padding:9px 14px;display:flex;
+align-items:center;gap:12px}
+.ghlogo{width:22px;height:22px;border-radius:50%;background:#1F2328;color:#fff;display:inline-flex;
+align-items:center;justify-content:center;font-size:12px;font-weight:700}
+.ghbar .sp{flex:1}
+.ghbtn{display:inline-block;border:1px solid var(--gh-border);border-radius:6px;padding:4px 12px;background:var(--gh-bg);font-weight:600;font-size:13px}
+.ghbtn.green{background:var(--gh-green);border-color:var(--gh-green);color:#fff}
+.ghbody{padding:16px}
+.ghfield{margin:0 0 12px}
+.ghfield label{display:block;font-weight:600;font-size:13px;margin:0 0 4px}
+.ghinput{border:1px solid var(--gh-border);border-radius:6px;background:#fff;padding:6px 10px;max-width:330px;color:#333}
+.ghinput.filled{color:#111;font-weight:600}
+.ghtabs{display:flex;gap:18px;padding:0 14px;border-bottom:1px solid var(--gh-border);background:var(--gh-bg);font-size:13.5px}
+.ghtabs span{padding:9px 2px;color:#333}
+.ghtabs .on{border-bottom:2px solid #FD8C73;font-weight:600}
+.radio{display:flex;gap:8px;align-items:flex-start;margin:6px 0}
+.dot{width:14px;height:14px;border-radius:50%;border:1px solid var(--gh-border);flex:none;margin-top:2px}
+.dot.sel{border:4px solid var(--gh-blue)}
+.chk{width:14px;height:14px;border:1px solid var(--gh-border);border-radius:3px;flex:none;margin-top:2px}
+.chk.sel{background:var(--gh-blue);border-color:var(--gh-blue);position:relative}
+.chk.sel::after{content:"✓";color:#fff;font-size:11px;position:absolute;left:2px;top:-2px}
+.dropzone{border:2px dashed var(--gh-border);border-radius:8px;padding:26px;text-align:center;color:var(--slate)}
+.filelist{margin:10px 0 0;padding:0;list-style:none}
+.filelist li{border:1px solid var(--gh-border);border-radius:6px;padding:6px 10px;margin:6px 0;background:var(--gh-bg);
+font-family:ui-monospace,Menlo,monospace;font-size:12.5px}
+.sidebar{display:grid;grid-template-columns:170px 1fr}
+.sidebar .menu{border-right:1px solid var(--gh-border);background:var(--gh-bg);padding:10px 0}
+.sidebar .menu div{padding:6px 14px;color:#333}
+.sidebar .menu .on{background:#fff;border-left:2px solid #FD8C73;font-weight:600}
+.livebox{border:1px solid var(--gh-border);border-radius:8px;padding:12px 14px;background:#DDF4E4;display:flex;
+gap:10px;align-items:center;flex-wrap:wrap}
+.addr{font-family:ui-monospace,Menlo,monospace;font-size:12.5px;background:#fff;border:1px solid var(--gh-border);
+border-radius:6px;padding:5px 9px}
+/* --- red guidance marks --- */
+.mark{position:relative;display:inline-block}
+.mark::before{content:"";position:absolute;inset:-7px -10px;border:2.5px solid var(--red);border-radius:9px}
+.point{position:relative;padding:0 18px 4px;color:var(--red);font-weight:700;font-size:13px}
+.point::before{content:"→ "}
+.warn{margin:0 18px 16px;background:#F6EEDC;color:#8A5A00;border-radius:8px;padding:10px 14px;font-size:14px}
+@media print{
+  body{background:#fff}
+  .step{box-shadow:none;margin-bottom:16px}
+  .shot{box-shadow:none}
+  .wrap{padding-top:10px}
+}
+</style>
+</head>
+<body><div class="wrap">
+<h1>Putting your calculator online — picture by picture</h1>
+<p class="lead">Each picture below is a simplified drawing of what your screen will look like, with the thing to click marked in red. Follow them in order. To keep a paper copy, print this page (Ctrl&#8209;P or Cmd&#8209;P).</p>
+<span class="pill">You need: the unzipped package folder · an email address · about 15 minutes</span>
+
+<!-- STEP 1 -->
+<div class="step">
+<h2><span class="n">1</span>Go to github.com and click Sign up</h2>
+<div class="shot">
+  <div class="ghbar"><span class="ghlogo">G</span><b>GitHub</b><span class="sp"></span>
+    <span class="ghbtn">Sign in</span>&nbsp;<span class="mark"><span class="ghbtn green">Sign up</span></span></div>
+  <div class="ghbody" style="padding:26px;text-align:center;color:var(--slate)">Build and ship software…<br>(the front page — the wording changes often, the button doesn't)</div>
+</div>
+<p class="point">Click the green Sign up button in the top-right corner</p>
+</div>
+
+<!-- STEP 2 -->
+<div class="step">
+<h2><span class="n">2</span>Create your account</h2>
+<p class="say">Your <b>username becomes part of your website's address</b>, so choose something professional — <b>maria&#8209;lopez</b>, not <b>dragonslayer4444</b>. Pick the <b>Free</b> plan if asked, and skip any questions about teams or interests.</p>
+<div class="shot"><div class="ghbody">
+  <div class="ghfield"><label>Email</label><div class="ghinput filled">you@yourcompany.com</div></div>
+  <div class="ghfield"><label>Password</label><div class="ghinput filled">••••••••••••</div></div>
+  <div class="ghfield"><label>Username</label><div class="ghinput filled">maria-lopez</div></div>
+  <span class="mark"><span class="ghbtn green">Create account</span></span>
+</div></div>
+<p class="point">Fill in the three boxes, click Create account, then enter the code GitHub emails you</p>
+</div>
+
+<!-- STEP 3 -->
+<div class="step">
+<h2><span class="n">3</span>Open the + menu and choose New repository</h2>
+<p class="say">A “repository” is just GitHub's word for <b>a folder</b>.</p>
+<div class="shot">
+  <div class="ghbar"><span class="ghlogo">G</span><span class="sp"></span>
+    <span class="mark"><span class="ghbtn">+ ▾</span></span>&nbsp;<span class="ghbtn">☺</span></div>
+  <div class="ghbody" style="max-width:240px;margin-left:auto;border:1px solid var(--gh-border);border-radius:8px;margin-top:-4px;margin-right:10px;margin-bottom:12px;background:#fff">
+    <div class="mark" style="display:block"><div style="padding:7px 12px;font-weight:600">New repository</div></div>
+    <div style="padding:7px 12px;color:var(--slate)">Import repository</div>
+    <div style="padding:7px 12px;color:var(--slate)">New gist</div>
+  </div>
+</div>
+<p class="point">Click the + in the very top-right, then click New repository</p>
+</div>
+
+<!-- STEP 4 -->
+<div class="step">
+<h2><span class="n">4</span>Fill the form exactly like this</h2>
+<div class="shot"><div class="ghbody">
+  <div class="ghfield"><label>Repository name</label>
+    <div class="mark"><div class="ghinput filled">llm-cost-calculator</div></div></div>
+  <div class="radio"><span class="dot sel"></span><span><b>Public</b> — anyone can see this repository. <span style="color:var(--slate)">(needed for the free website)</span></span></div>
+  <div class="radio"><span class="dot"></span><span style="color:var(--slate)">Private</span></div>
+  <div class="radio" style="margin-top:12px"><span class="chk sel"></span><span><b>Add a README file</b></span></div>
+  <div style="margin-top:14px"><span class="mark"><span class="ghbtn green">Create repository</span></span></div>
+</div></div>
+<p class="point">Type the name in lowercase with hyphens, keep Public, tick the README box, click Create repository</p>
+</div>
+
+<!-- STEP 5 -->
+<div class="step">
+<h2><span class="n">5</span>Click Add file, then Upload files</h2>
+<div class="shot">
+  <div class="ghtabs"><span class="on">&lt;&gt; Code</span><span>Issues</span><span>Pull requests</span><span>Settings</span></div>
+  <div class="ghbody"><b>maria-lopez / llm-cost-calculator</b>
+    <div style="margin-top:10px">
+      <span class="mark"><span class="ghbtn">Add file ▾</span></span>&nbsp;
+      <span class="ghbtn green">&lt;&gt; Code ▾</span></div>
+    <div class="ghbody" style="max-width:200px;border:1px solid var(--gh-border);border-radius:8px;background:#fff;margin-top:8px;padding:4px 0">
+      <div style="padding:6px 12px;color:var(--slate)">Create new file</div>
+      <div class="mark" style="display:block"><div style="padding:6px 12px;font-weight:600">Upload files</div></div>
+    </div>
+  </div>
+</div>
+<p class="point">Add file is next to the green Code button. Click it, then Upload files</p>
+</div>
+
+<!-- STEP 6 -->
+<div class="step">
+<h2><span class="n">6</span>Drag the files in, then Commit changes</h2>
+<p class="say">Open your unzipped package folder and drag these into the dotted box, all at once. “Commit” just means <b>save</b>.</p>
+<div class="shot"><div class="ghbody">
+  <div class="dropzone">Drag files here to add them to your repository</div>
+  <ul class="filelist">
+    <li>index.html</li>
+    <li>README.md</li>
+    <li>DEVELOPER_BRIEF.md</li>
+  </ul>
+  <div style="margin-top:12px"><span class="mark"><span class="ghbtn green">Commit changes</span></span></div>
+</div></div>
+<div class="warn">The website only works if the first file is named <b>exactly index.html</b>. If your computer renamed it — to <i>index&nbsp;(1).html</i>, say — rename it back before uploading. And do <b>not</b> upload the Excel workbook: the repository is public, and the workbook is meant to be requested from Mark, not downloaded.</div>
+<p class="point">When the file names appear in the list, scroll down and click Commit changes</p>
+</div>
+
+<!-- STEP 7 -->
+<div class="step">
+<h2><span class="n">7</span>Open Settings, then Pages</h2>
+<div class="shot">
+  <div class="ghtabs"><span>&lt;&gt; Code</span><span>Issues</span><span>Pull requests</span>
+    <span class="mark"><span class="on">⚙ Settings</span></span></div>
+  <div class="sidebar">
+    <div class="menu">
+      <div>General</div><div>Collaborators</div><div>Branches</div>
+      <div class="mark" style="display:block"><div class="on">Pages</div></div>
+      <div>Security</div>
+    </div>
+    <div class="ghbody" style="color:var(--slate)">…</div>
+  </div>
+</div>
+<p class="point">Settings is the last tab along the top. Pages is in the menu down the left side</p>
+</div>
+
+<!-- STEP 8 -->
+<div class="step">
+<h2><span class="n">8</span>Switch the website on</h2>
+<div class="shot"><div class="ghbody">
+  <b>GitHub Pages</b>
+  <div class="ghfield" style="margin-top:12px"><label>Build and deployment — Source</label>
+    <div class="ghinput filled">Deploy from a branch ▾</div></div>
+  <div class="ghfield"><label>Branch</label>
+    <span class="ghinput filled" style="display:inline-block">main ▾</span>&nbsp;
+    <span class="ghinput filled" style="display:inline-block">/ (root) ▾</span>&nbsp;
+    <span class="mark"><span class="ghbtn">Save</span></span></div>
+</div></div>
+<p class="point">Source: Deploy from a branch · Branch: main · Folder: / (root) · then Save</p>
+</div>
+
+<!-- STEP 9 -->
+<div class="step">
+<h2><span class="n">9</span>Wait two minutes, refresh, and visit your site</h2>
+<div class="shot"><div class="ghbody">
+  <div class="livebox">✅ <b>Your site is live at</b>
+    <span class="addr">https://maria-lopez.github.io/llm-cost-calculator/</span>
+    <span class="mark"><span class="ghbtn">Visit site</span></span></div>
+</div></div>
+<p class="say" style="padding-bottom:16px">That address is yours to share — in an email, a slide, anywhere. When someone builds a specific estimate, the address in their browser updates too, so copying the address bar shares that exact scenario.</p>
+</div>
+
+<!-- STEP 10 -->
+<div class="step">
+<h2><span class="n">10</span>What you should see</h2>
+<div class="shot"><div class="ghbody" style="background:#F5F6F3">
+  <b style="font-family:Georgia,serif;font-size:16px">What would it cost to run an AI model?</b>
+  <div style="display:grid;grid-template-columns:1fr 150px;gap:12px;margin-top:10px">
+    <div>
+      <div style="border:1px solid var(--line);border-radius:6px;background:#fff;padding:8px;margin-bottom:6px">1 &nbsp;How big is the AI model?</div>
+      <div style="border:1px solid var(--line);border-radius:6px;background:#fff;padding:8px;margin-bottom:6px">2 &nbsp;How much use will it get?</div>
+      <div style="border:1px solid var(--line);border-radius:6px;background:#fff;padding:8px">3 &nbsp;What matters most?</div>
+    </div>
+    <div style="border:1px solid var(--line);border-radius:8px;background:#fff;padding:10px;text-align:center">
+      <div style="font-size:10px;color:var(--slate)">Cheapest way</div>
+      <div style="font-family:Georgia,serif;font-weight:700;color:var(--pine);font-size:19px">$2,760<span style="font-size:10px">/mo</span></div>
+      <div style="height:7px;border-radius:4px;margin-top:6px;background:linear-gradient(90deg,var(--pine) 55%,#3E4A54 55%)"></div>
+    </div>
+  </div>
+</div></div>
+<p class="say" style="padding-bottom:18px">Three questions on the left, the live total on the right, and a notes section at the bottom where visitors can write to Mark — including to request the Excel workbook. If you see this — you're done. If anything went wrong instead, the troubleshooting table in <b>GITHUB_FOR_BEGINNERS.md</b> matches what's on your screen to the fix.</p>
+</div>
+
+<p class="lead" style="font-size:13.5px">Prices in the calculator were verified in September 2026. It shows visitors a yellow warning automatically once the numbers are about six weeks old. These pictures are simplified drawings — GitHub changes small details of its design now and then, but the buttons keep their names and places.</p>
+</div></body>
+</html>

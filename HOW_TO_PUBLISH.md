@@ -1,8 +1,9 @@
 # How to publish your cost calculator — no technical knowledge needed
 
-You have two files to put online: `index.html` (the calculator website) and
-`LLM_Hosting_Cost_Calculator.xlsx` (the Excel workbook people can download from it).
-GitHub will host both for free. Every step below happens in your web browser —
+You have one file to put online: `index.html` — the whole calculator website.
+GitHub hosts it for free. **Keep the Excel workbook off GitHub**: the repository
+is public, so anything uploaded can be downloaded by anyone. The site directs
+visitors to contact Mark Ibrahim for the workbook. Every step below happens in your web browser —
 you will not type any commands.
 
 Total time: about 10 minutes.
@@ -26,9 +27,9 @@ Total time: about 10 minutes.
 
 1. On the page that opens, click **Add file** (near the green Code button), then
    **Upload files**.
-2. Drag **`index.html`** and **`LLM_Hosting_Cost_Calculator.xlsx`** from the
-   package folder into the upload box. Also drag **`README.md`** and say yes when
-   it asks to replace the existing one.
+2. Drag **`index.html`** and **`README.md`** from the package folder into the
+   upload box (say yes when it asks to replace the README). Do **not** upload
+   the Excel workbook.
 3. Click the green **Commit changes** button at the bottom.
 
 > The file names matter. If your computer renamed the download to `index (1).html`,
@@ -60,8 +61,6 @@ specific scenario by just copying the address bar.
 
 - **404 / page not found** — wait two more minutes and refresh; the first build is slow.
   Still nothing? Re-check Step 4, and confirm the file is called exactly `index.html`.
-- **The page loads but the Excel download doesn't** — check the workbook uploaded with
-  its exact name: `LLM_Hosting_Cost_Calculator.xlsx`.
 - **You want to take it down** — Settings → Pages → change Source to **None**. Or delete
   the whole repository under Settings → General → Danger Zone.
 

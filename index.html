@@ -20,10 +20,21 @@ html{scroll-behavior:smooth}
 body{margin:0;background:var(--paper);color:var(--ink);font:400 16px/1.55 var(--ui)}
 a{color:var(--pine)}
 .wrap{max-width:1140px;margin:0 auto;padding:0 20px}
+.topbar{background:var(--ink);color:#E9ECE8;font-size:13px}
+.topbar .wrap{display:flex;justify-content:space-between;align-items:center;gap:14px;padding-top:8px;padding-bottom:8px;flex-wrap:wrap}
+@media (max-width:640px){.topbar .credit{display:none}}
+.topbar b{color:#fff;font-weight:600}
+.topbar .builder{display:flex;align-items:baseline;gap:9px}
+.topbar .builder em{font-style:normal;color:#9FB8AF;font-size:12px;border:1px solid rgba(159,184,175,.5);border-radius:99px;padding:1px 9px}
+.topbar .credit{color:#C6CCC9}
+.topbar a{color:#BFD8CF;text-decoration:none;border-bottom:1px solid rgba(191,216,207,.45);white-space:nowrap}
+.topbar a:hover{color:#fff}
 header.site{border-bottom:1px solid var(--line);background:var(--panel)}
-header.site .wrap{display:flex;justify-content:space-between;align-items:baseline;padding-top:22px;padding-bottom:18px;gap:16px;flex-wrap:wrap}
-h1{font:650 26px/1.15 var(--num);margin:0;letter-spacing:-.01em}
-.sub{color:var(--slate);font-size:14px;max-width:52ch}
+header.site .hero{padding-top:52px;padding-bottom:44px}
+.kicker{font:600 13px/1 var(--ui);letter-spacing:.14em;text-transform:none;color:var(--pine);margin:0 0 14px;border-left:3px solid var(--pine);padding-left:10px}
+h1{font:650 clamp(34px,5.4vw,56px)/1.06 var(--num);margin:0 0 14px;letter-spacing:-.018em;max-width:18ch}
+.sub{color:var(--slate);font-size:17px;max-width:56ch;margin:0}
+.meta{color:var(--slate);font-size:13.5px;margin:16px 0 0}
 main .wrap{display:grid;grid-template-columns:minmax(0,1fr) 384px;gap:36px;padding-top:30px;padding-bottom:70px}
 h2{font:600 17px/1.3 var(--ui);margin:0 0 4px}
 .qnum{display:inline-block;font:650 15px/1 var(--num);color:var(--pine);margin-right:8px}
@@ -71,6 +82,24 @@ aside{position:sticky;top:18px;align-self:start}
 .note{padding:0 20px 18px;font-size:12.5px;color:var(--slate)}
 .dl{display:block;text-align:center;margin:0 20px 18px;padding:10px;border:1px solid var(--pine);border-radius:8px;color:var(--pine);font-weight:600;text-decoration:none;font-size:14px}
 .dl:hover{background:var(--pine-soft)}
+/* comments */
+.comments{border-top:1px solid var(--line);margin-top:40px;padding-top:30px}
+.comments .intro{color:var(--slate);font-size:15px;max-width:64ch;margin:4px 0 18px}
+.clist{display:grid;gap:12px;margin:0 0 22px}
+.comment{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.comment.pinned{border-color:var(--pine);background:var(--pine-soft)}
+.comment .who{font-weight:650;font-size:14.5px;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+.comment .role{font-weight:500;font-size:12px;color:var(--pine);background:#fff;border:1px solid var(--pine);border-radius:99px;padding:1px 9px}
+.comment .body{margin:6px 0 0;font-size:14.5px}
+.comment .body a{font-weight:600}
+.cform{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px}
+.cform .grid2{margin-top:0}
+.cform textarea{width:100%;min-height:96px;padding:9px 11px;border:1px solid var(--line);border-radius:6px;font:400 15px/1.5 var(--ui);color:var(--ink);resize:vertical}
+.cform textarea:focus-visible{outline:2px solid var(--pine);outline-offset:1px;border-color:var(--pine)}
+.send{margin-top:12px;background:var(--pine);color:#fff;border:none;border-radius:8px;padding:11px 20px;font:600 15px var(--ui);cursor:pointer}
+.send:hover{background:#0B4A40}
+.send:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+.cnote{font-size:12.5px;color:var(--slate);margin-top:10px}
 /* results below the form */
 .results{border-top:1px solid var(--line);margin-top:34px;padding-top:26px}
 table{width:100%;border-collapse:collapse;font-size:13.5px;background:var(--panel)}
@@ -91,13 +120,22 @@ footer .wrap{padding:22px 20px 30px;max-width:1140px}
 </style>
 </head>
 <body>
-<div class="banner" id="staleBanner">These prices were last verified in September 2026 and may be out of date. Treat the totals as rough until they are refreshed.</div>
+<!-- ======================================================================
+     OWNER: set Mark's real email address here (one place, used everywhere)
+     ====================================================================== -->
+<script>window.CONTACT_EMAIL = "mark.ibrahim@example.com";</script>
+<div class="topbar"><div class="wrap">
+  <span class="builder"><b>Mark Ibrahim</b><em>Model Builder</em></span>
+  <span class="credit">Designed &amp; developed by <b>Mark Ibrahim</b></span>
+  <a href="#comments">Leave a note</a>
+</div></div>
+<div class="banner" id="staleBanner">These prices were last verified in August 2026 and may be out of date. Treat the totals as rough until they are refreshed.</div>
 <header class="site"><div class="wrap">
   <div>
     <h1>What would it cost to run an AI model?</h1>
     <p class="sub">Rent GPU machines on Google Cloud or Microsoft Azure, or pay per token for a hosted model — including the people needed to look after it.</p>
   </div>
-  <div class="sub">Prices verified <span id="verifiedDate">September 2026</span> · US list prices · a planning estimate, not a quote</div>
+  <div class="sub">Prices verified <span id="verifiedDate">August 2026</span> · US list prices · a planning estimate, not a quote</div>
 </div></header>
 
 <main><div class="wrap">
@@ -151,16 +189,36 @@ footer .wrap{padding:22px 20px 30px;max-width:1140px}
     <div class="rows" id="planRows"></div>
     <div class="verdict" id="verdict"></div>
     <div class="warnline" id="warnline" hidden></div>
-    <a class="dl" href="LLM_Hosting_Cost_Calculator.xlsx" download>Download the Excel workbook</a>
+    <a class="dl" id="workbookLink" href="#">Full Excel workbook — contact Mark Ibrahim</a>
     <div class="note">Undiscounted US list prices. Excludes taxes, negotiated discounts, load balancers, monitoring and one-off setup work. Throughput is a bandwidth model, accurate to roughly a factor of two.</div>
   </div>
 </aside>
 </div></main>
 
+<section class="comments wrap" id="comments">
+  <h2 style="font:650 24px/1.2 var(--num);margin:0">Notes to the model builder</h2>
+  <p class="intro">Questions about the numbers, a price you know to be wrong, or a scenario this should handle? Leave a note — it goes straight to Mark. Include your contact details if you'd like a reply or a copy of the full workbook.</p>
+  <div class="clist" id="clist">
+    <div class="comment pinned">
+      <div class="who">Mark Ibrahim <span class="role">Model builder</span></div>
+      <p class="body">Thanks for using the calculator. For the full Excel workbook — ten tabs, every source, a printable executive report — or for questions, corrections and walkthroughs, reach me at <a href="#" class="mailme">email Mark</a>. Please include your name and the best way to contact you.</p>
+    </div>
+  </div>
+  <form class="cform" id="cform">
+    <div class="grid2">
+      <div class="field"><label for="cName">Your name</label><input type="text" id="cName" required maxlength="80" style="width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:6px;font:400 15px var(--ui)"></div>
+      <div class="field"><label for="cContact">How to reach you <span class="why">— email or phone</span></label><input type="text" id="cContact" required maxlength="120" style="width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:6px;font:400 15px var(--ui)"></div>
+    </div>
+    <div class="field" style="margin-top:12px"><label for="cMsg">Your note</label><textarea id="cMsg" required maxlength="2000" placeholder="What are you trying to price, or what should be different?"></textarea></div>
+    <button type="submit" class="send">Send note to Mark</button>
+    <p class="cnote">Sending opens a ready-made email in your own mail program — nothing is stored on this page, and your details go only to Mark. Your note also appears above for the rest of your visit.</p>
+  </form>
+</section>
+
 <footer><div class="wrap">
-  <p><strong>Where the numbers come from.</strong> GPU machine rates from Google Cloud and Azure published price lists and cross-checked trackers; hosted-model rates from Google, Microsoft and Anthropic pricing pages, verified <span id="verifiedDate2">September 2026</span>. Some multi-GPU Azure rates are scaled from the published single-GPU rate and marked as estimates. The Excel workbook contains the full source list, the sizing guide, and a printable executive report.</p>
+  <p><strong>Where the numbers come from.</strong> GPU machine rates from Google Cloud and Azure published price lists and cross-checked trackers; hosted-model rates from Google, Microsoft and Anthropic pricing pages, verified <span id="verifiedDate2">August 2026</span>. Some multi-GPU Azure rates are scaled from the published single-GPU rate and marked as estimates. The full Excel workbook — source list, sizing guide, printable executive report — is available on request from Mark Ibrahim via the notes section above.</p>
   <p><strong>What this can't tell you.</strong> Whether your data is allowed to leave your control (often the real reason to self-host), how a specific model performs on your task, or the price your organisation has actually negotiated. Measure real throughput before committing capacity.</p>
-  <p>This is an independent planning tool. It is not affiliated with or endorsed by Google, Microsoft, NVIDIA, AMD, OpenAI or Anthropic.</p>
+  <p>Designed and developed by <b>Mark Ibrahim</b>. This is an independent planning tool, not affiliated with or endorsed by Google, Microsoft, NVIDIA, AMD, OpenAI or Anthropic.</p>
 </div></footer>
 
 <script>window.DATA = {
@@ -1426,6 +1484,33 @@ function saveURL(p){
   document.getElementById("verifiedDate").textContent = D.rates.verified;
   document.getElementById("verifiedDate2").textContent = D.rates.verified;
 })();
+/* ---------------- contact + comments ---------------- */
+(function contact(){
+  const em = window.CONTACT_EMAIL;
+  const wb = document.getElementById("workbookLink");
+  wb.href = "mailto:" + em + "?subject=" + encodeURIComponent("Request: LLM cost workbook")
+          + "&body=" + encodeURIComponent("Hi Mark,\n\nCould you send me the full Excel workbook behind the cost calculator?\n\nName:\nOrganisation:\nBest contact:\n");
+  document.querySelectorAll(".mailme").forEach(a=>{ a.href="mailto:"+em; a.textContent=em; });
+})();
+document.getElementById("cform").addEventListener("submit", function(e){
+  e.preventDefault();
+  const name=document.getElementById("cName").value.trim();
+  const contact=document.getElementById("cContact").value.trim();
+  const msg=document.getElementById("cMsg").value.trim();
+  if(!name||!contact||!msg) return;
+  // show it on the page for this visit (in memory only — nothing is stored)
+  const div=document.createElement("div");
+  div.className="comment";
+  const who=document.createElement("div"); who.className="who"; who.textContent=name;
+  const body=document.createElement("p"); body.className="body"; body.textContent=msg;
+  div.appendChild(who); div.appendChild(body);
+  document.getElementById("clist").appendChild(div);
+  // deliver it: open a pre-written email to Mark
+  const subject="Note from the cost calculator — "+name;
+  const bodyTxt="From: "+name+"\nContact: "+contact+"\nEstimate link: "+location.href+"\n\n"+msg;
+  location.href="mailto:"+window.CONTACT_EMAIL+"?subject="+encodeURIComponent(subject)+"&body="+encodeURIComponent(bodyTxt);
+  this.reset();
+});
 syncTune(); render();
 </script>
 </body>

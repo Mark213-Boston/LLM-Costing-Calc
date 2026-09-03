@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Where to find your website link on GitHub</title>
+<style>
+:root{--ink:#20262B;--slate:#5C6670;--line:#D7DCD5;--pine:#0F5C4F;--red:#C4372A;
+--gh-green:#1F883D;--gh-bg:#F6F8FA;--gh-border:#D0D7DE;--gh-blue:#0969DA}
+*{box-sizing:border-box}
+body{margin:0;background:#F5F6F3;color:var(--ink);font:400 16px/1.5 "Public Sans",system-ui,-apple-system,Segoe UI,sans-serif}
+.wrap{max-width:820px;margin:0 auto;padding:34px 22px 70px}
+h1{font-size:26px;line-height:1.2;margin:0 0 6px}
+.lead{color:var(--slate);max-width:64ch;margin:0 0 26px}
+.step{border:1px solid var(--line);background:#fff;border-radius:10px;margin:0 0 26px;overflow:hidden;break-inside:avoid;page-break-inside:avoid}
+.step h2{margin:0;padding:14px 18px;font-size:17px;border-bottom:1px solid var(--line);display:flex;gap:12px;align-items:baseline}
+.n{flex:none;width:26px;height:26px;border-radius:50%;background:var(--pine);color:#fff;font-size:14px;display:inline-flex;align-items:center;justify-content:center;transform:translateY(4px)}
+.say{padding:12px 18px 0;color:var(--slate);font-size:15px;max-width:70ch}
+.say b{color:var(--ink)}
+.shot{margin:14px 18px 18px;border:1px solid var(--gh-border);border-radius:8px;background:#fff;box-shadow:0 3px 14px rgba(32,38,43,.08);overflow:hidden;font-size:13px}
+.point{position:relative;padding:0 18px 16px;color:var(--red);font-weight:700;font-size:13px}
+.point::before{content:"→ "}
+.ghtabs{display:flex;gap:18px;padding:0 14px;border-bottom:1px solid var(--gh-border);background:var(--gh-bg);font-size:13.5px;flex-wrap:wrap}
+.ghtabs span{padding:9px 2px;color:#333}
+.ghtabs .on{border-bottom:2px solid #FD8C73;font-weight:600}
+.ghbody{padding:16px}
+.ghbtn{display:inline-block;border:1px solid var(--gh-border);border-radius:6px;padding:4px 12px;background:var(--gh-bg);font-weight:600;font-size:13px}
+.sidebar{display:grid;grid-template-columns:150px 1fr}
+.sidebar .menu{border-right:1px solid var(--gh-border);background:var(--gh-bg);padding:10px 0}
+.sidebar .menu div{padding:6px 14px;color:#333}
+.sidebar .menu .on{background:#fff;border-left:2px solid #FD8C73;font-weight:600}
+.livebox{border:1px solid #4AC26B;border-radius:8px;padding:12px 14px;background:#DDF4E4;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.addr{font-family:ui-monospace,Menlo,monospace;font-size:12.5px;background:#fff;border:1px solid var(--gh-border);border-radius:6px;padding:5px 9px}
+.mark{position:relative;display:inline-block}
+.mark::before{content:"";position:absolute;inset:-7px -10px;border:2.5px solid var(--red);border-radius:9px}
+.markblock{position:relative;display:block;margin:4px}
+.markblock::before{content:"";position:absolute;inset:-6px;border:2.5px solid var(--red);border-radius:10px;pointer-events:none}
+/* browser chrome */
+.browser{border-bottom:1px solid var(--gh-border);background:var(--gh-bg);display:flex;gap:8px;align-items:center;padding:8px 12px}
+.dots span{display:inline-block;width:10px;height:10px;border-radius:50%;background:#D0D7DE;margin-right:4px}
+.urlbar{flex:1;background:#fff;border:1px solid var(--gh-border);border-radius:99px;padding:5px 14px;font-family:ui-monospace,Menlo,monospace;font-size:12.5px;white-space:nowrap;overflow:hidden}
+.lock{color:var(--pine);font-weight:700}
+/* url anatomy */
+.anatomy{margin:10px 18px 20px;font-family:ui-monospace,Menlo,monospace;font-size:14px;line-height:1.2;overflow-x:auto}
+.anatomy .u{color:var(--pine);font-weight:700}
+.anatomy .r{color:#7A4CC0;font-weight:700}
+.legend{display:flex;gap:22px;flex-wrap:wrap;margin:8px 18px 18px;font-size:13px;color:var(--slate)}
+.legend b.u{color:var(--pine)} .legend b.r{color:#7A4CC0}
+.warn{margin:0 18px 18px;background:#F6EEDC;color:#8A5A00;border-radius:8px;padding:10px 14px;font-size:14px}
+.err404{padding:26px;text-align:center;color:var(--slate)}
+.err404 b{font-size:30px;color:#333;display:block;font-family:Georgia,serif}
+@media print{body{background:#fff}.shot,.step{box-shadow:none}}
+</style>
+</head>
+<body><div class="wrap">
+<h1>Where your website link lives, and what it looks like</h1>
+<p class="lead">Your site's link does <b>not</b> appear on your repository's main page — GitHub keeps it in one specific place. Here is exactly where, and how to tell the difference between "live" and "not ready yet".</p>
+
+<!-- 1 -->
+<div class="step">
+<h2><span class="n">1</span>Go to Settings → Pages</h2>
+<div class="shot">
+  <div class="ghtabs"><span>&lt;&gt; Code</span><span>Issues</span><span>Pull requests</span>
+    <span class="mark"><span class="on">⚙ Settings</span></span></div>
+  <div class="sidebar">
+    <div class="menu">
+      <div>General</div><div>Branches</div>
+      <span class="markblock"><div class="on">Pages</div></span>
+      <div>Security</div>
+    </div>
+    <div class="ghbody" style="color:var(--slate)">…</div>
+  </div>
+</div>
+<p class="point">Settings is the last tab across the top of your repository. Pages is in the left-hand menu.</p>
+</div>
+
+<!-- 2 -->
+<div class="step">
+<h2><span class="n">2</span>This green box is your link — this is what LIVE looks like</h2>
+<div class="shot"><div class="ghbody">
+  <b>GitHub Pages</b>
+  <div style="height:10px"></div>
+  <span class="markblock"><div class="livebox">✅ <b>Your site is live at</b>
+    <span class="addr">https://maria-lopez.github.io/llm-cost-calculator/</span>
+    <span class="ghbtn">Visit site</span></div></span>
+</div></div>
+<p class="say">The green box sits at the very top of the Pages screen. <b>Visit site</b> opens your calculator; the written address is the link you copy and share. If you see this box, you are done — everything below it on that screen can be ignored.</p>
+<p class="point">Green box with "Your site is live at" = your website is working</p>
+</div>
+
+<!-- 3 -->
+<div class="step">
+<h2><span class="n">3</span>Reading the address</h2>
+<p class="say">The address always has the same three parts, so you can also just type it from memory:</p>
+<div class="anatomy">https://<span class="u">maria-lopez</span>.github.io/<span class="r">llm-cost-calculator</span>/</div>
+<div class="legend">
+  <span><b class="u">■ your username</b> — shown top-left of your repository, before the slash</span>
+  <span><b>■ github.io</b> — the same for everyone</span>
+  <span><b class="r">■ the repository name</b> — what you called the folder</span>
+</div>
+<div class="warn">A common mix-up: <b>github.com/maria-lopez/llm-cost-calculator</b> is where the <i>files</i> live. Your <i>website</i> is the <b>github.io</b> address. Share the github.io one.</div>
+</div>
+
+<!-- 4 -->
+<div class="step">
+<h2><span class="n">4</span>What it looks like once it's open</h2>
+<div class="shot">
+  <div class="browser"><span class="dots"><span></span><span></span><span></span></span>
+    <span class="markblock" style="flex:1"><div class="urlbar"><span class="lock">🔒</span> maria-lopez.github.io/llm-cost-calculator/</div></span></div>
+  <div class="ghbody" style="background:#F5F6F3">
+    <b style="font-family:Georgia,serif;font-size:16px">What would it cost to run an AI model?</b>
+    <div style="display:grid;grid-template-columns:1fr 150px;gap:12px;margin-top:10px">
+      <div>
+        <div style="border:1px solid var(--line);border-radius:6px;background:#fff;padding:8px;margin-bottom:6px">1 &nbsp;How big is the AI model?</div>
+        <div style="border:1px solid var(--line);border-radius:6px;background:#fff;padding:8px;margin-bottom:6px">2 &nbsp;How much use will it get?</div>
+        <div style="border:1px solid var(--line);border-radius:6px;background:#fff;padding:8px">3 &nbsp;What matters most?</div>
+      </div>
+      <div style="border:1px solid var(--line);border-radius:8px;background:#fff;padding:10px;text-align:center">
+        <div style="font-size:10px;color:var(--slate)">Cheapest way</div>
+        <div style="font-family:Georgia,serif;font-weight:700;color:var(--pine);font-size:19px">$2,760<span style="font-size:10px">/mo</span></div>
+        <div style="height:7px;border-radius:4px;margin-top:6px;background:linear-gradient(90deg,var(--pine) 55%,#3E4A54 55%)"></div>
+      </div>
+    </div>
+  </div>
+</div>
+<p class="say" style="padding-bottom:16px">The address bar shows the github.io address with a padlock. As people change answers, the address quietly grows longer — that's normal, and it means <b>copying the address bar shares that exact estimate</b>, not just the blank calculator.</p>
+</div>
+
+<!-- 5 -->
+<div class="step">
+<h2><span class="n">5</span>And this is what NOT-READY looks like</h2>
+<div class="shot">
+  <div class="browser"><span class="dots"><span></span><span></span><span></span></span>
+    <div class="urlbar">maria-lopez.github.io/llm-cost-calculator/</div></div>
+  <div class="err404"><b>404</b>There isn't a GitHub Pages site here.</div>
+</div>
+<p class="say" style="padding-bottom:16px">Seeing this in the <b>first couple of minutes</b> after saving the Pages settings is completely normal — the first build is slow. Wait two minutes, refresh. If it is still there after ten minutes: go back to Settings → Pages and check the settings read <b>Deploy from a branch · main · / (root)</b>, and check your file is named exactly <b>index.html</b>.</p>
+</div>
+
+<p class="lead" style="font-size:13.5px">These are simplified drawings — GitHub changes small details of its design now and then, but the Pages screen and the green "live at" box keep their place. Print this page (Ctrl-P or Cmd-P) for a paper copy.</p>
+</div></body>
+</html>
