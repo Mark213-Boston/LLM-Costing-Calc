@@ -1,0 +1,1432 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LLM Hosting Cost Calculator — Google Cloud vs Azure vs pay-per-token</title>
+<meta name="description" content="Estimate what it costs to run a large language model: rent GPU machines on Google Cloud or Azure, or pay per token for a hosted model. Includes the people cost.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,650&family=Public+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F5F6F3; --panel:#FFFFFF; --ink:#20262B; --slate:#5C6670; --line:#DDE2DC;
+  --pine:#0F5C4F; --pine-soft:#E3EEEA; --amber:#8A5A00; --amber-soft:#F6EEDC; --red:#8C2F26;
+  --num:"Fraunces",Georgia,serif; --ui:"Public Sans",system-ui,-apple-system,sans-serif;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important}}
+body{margin:0;background:var(--paper);color:var(--ink);font:400 16px/1.55 var(--ui)}
+a{color:var(--pine)}
+.wrap{max-width:1140px;margin:0 auto;padding:0 20px}
+header.site{border-bottom:1px solid var(--line);background:var(--panel)}
+header.site .wrap{display:flex;justify-content:space-between;align-items:baseline;padding-top:22px;padding-bottom:18px;gap:16px;flex-wrap:wrap}
+h1{font:650 26px/1.15 var(--num);margin:0;letter-spacing:-.01em}
+.sub{color:var(--slate);font-size:14px;max-width:52ch}
+main .wrap{display:grid;grid-template-columns:minmax(0,1fr) 384px;gap:36px;padding-top:30px;padding-bottom:70px}
+h2{font:600 17px/1.3 var(--ui);margin:0 0 4px}
+.qnum{display:inline-block;font:650 15px/1 var(--num);color:var(--pine);margin-right:8px}
+section.q{border-top:1px solid var(--line);padding:26px 0 8px}
+section.q:first-of-type{border-top:none;padding-top:4px}
+.hint{color:var(--slate);font-size:14px;margin:0 0 14px;max-width:64ch}
+.choices{display:grid;gap:10px}
+.choice{display:flex;gap:12px;align-items:flex-start;border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:13px 15px;cursor:pointer}
+.choice:has(input:checked){border-color:var(--pine);background:var(--pine-soft)}
+.choice:has(input:focus-visible){outline:2px solid var(--pine);outline-offset:2px}
+.choice input{margin-top:3px;accent-color:var(--pine)}
+.choice b{font-weight:600}
+.choice small{display:block;color:var(--slate);font-size:13px;margin-top:1px}
+details.tune{border:1px solid var(--line);border-radius:8px;background:var(--panel);margin-top:28px}
+details.tune>summary{cursor:pointer;padding:14px 16px;font-weight:600;list-style:none;display:flex;justify-content:space-between;align-items:center}
+details.tune>summary::after{content:"Show";color:var(--pine);font-weight:500;font-size:14px}
+details.tune[open]>summary::after{content:"Hide"}
+details.tune>summary:focus-visible{outline:2px solid var(--pine);outline-offset:-2px;border-radius:8px}
+.tunebody{padding:4px 16px 18px;border-top:1px solid var(--line)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px 20px;margin-top:12px}
+.field label{display:block;font-size:13px;font-weight:600;margin-bottom:4px}
+.field .why{font-weight:400;color:var(--slate)}
+input[type=number],select{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:6px;font:400 15px var(--ui);background:#fff;color:var(--ink)}
+input[type=number]:focus-visible,select:focus-visible{outline:2px solid var(--pine);outline-offset:1px;border-color:var(--pine)}
+.groupname{grid-column:1/-1;font-size:13px;color:var(--slate);border-bottom:1px solid var(--line);padding-bottom:4px;margin-top:8px}
+/* estimate panel */
+aside{position:sticky;top:18px;align-self:start}
+.ledger{background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:0 6px 24px rgba(32,38,43,.07);overflow:hidden}
+.ledger .head{padding:18px 20px 14px;border-bottom:1px solid var(--line)}
+.ledger .label{font-size:13px;color:var(--slate)}
+.ledger .big{font:650 44px/1 var(--num);letter-spacing:-.02em;color:var(--pine);margin-top:2px}
+.ledger .big small{font-size:17px;color:var(--slate);font-weight:500;font-family:var(--ui)}
+.ledger .yr{font-size:14px;color:var(--slate);margin-top:4px}
+.bar{display:flex;height:14px;border-radius:7px;overflow:hidden;margin:14px 20px 6px;background:var(--line)}
+.bar span{display:block;height:100%}
+.legend{display:flex;flex-wrap:wrap;gap:4px 14px;padding:0 20px 14px;font-size:12.5px;color:var(--slate)}
+.legend i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px}
+.rows{padding:8px 20px 14px;border-top:1px solid var(--line)}
+.row{display:flex;justify-content:space-between;gap:10px;padding:5px 0;font-size:14px}
+.row .k{color:var(--slate)}
+.row .v{font-weight:600;text-align:right}
+.verdict{margin:0 20px 16px;padding:12px 14px;border-radius:8px;background:var(--pine-soft);font-size:14px}
+.verdict.warn{background:var(--amber-soft)}
+.verdict b{font-weight:650}
+.note{padding:0 20px 18px;font-size:12.5px;color:var(--slate)}
+.dl{display:block;text-align:center;margin:0 20px 18px;padding:10px;border:1px solid var(--pine);border-radius:8px;color:var(--pine);font-weight:600;text-decoration:none;font-size:14px}
+.dl:hover{background:var(--pine-soft)}
+/* results below the form */
+.results{border-top:1px solid var(--line);margin-top:34px;padding-top:26px}
+table{width:100%;border-collapse:collapse;font-size:13.5px;background:var(--panel)}
+th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{font-weight:600;font-size:12.5px;color:var(--slate)}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+.pill{display:inline-block;font-size:11.5px;padding:1px 8px;border-radius:99px;background:var(--pine-soft);color:var(--pine);font-weight:600}
+.pill.est{background:var(--amber-soft);color:var(--amber)}
+.banner{background:var(--amber-soft);color:var(--amber);padding:10px 20px;font-size:14px;text-align:center;display:none}
+footer{border-top:1px solid var(--line);color:var(--slate);font-size:13px;background:var(--panel)}
+footer .wrap{padding:22px 20px 30px;max-width:1140px}
+.warnline{color:var(--amber);font-size:13.5px;margin:6px 20px 0;padding:0 0 4px}
+@media (max-width:900px){
+  main .wrap{grid-template-columns:1fr;padding-bottom:120px}
+  aside{position:static;order:-1}
+  .ledger .big{font-size:36px}
+}
+</style>
+</head>
+<body>
+<div class="banner" id="staleBanner">These prices were last verified in September 2026 and may be out of date. Treat the totals as rough until they are refreshed.</div>
+<header class="site"><div class="wrap">
+  <div>
+    <h1>What would it cost to run an AI model?</h1>
+    <p class="sub">Rent GPU machines on Google Cloud or Microsoft Azure, or pay per token for a hosted model — including the people needed to look after it.</p>
+  </div>
+  <div class="sub">Prices verified <span id="verifiedDate">September 2026</span> · US list prices · a planning estimate, not a quote</div>
+</div></header>
+
+<main><div class="wrap">
+<div>
+  <section class="q">
+    <h2><span class="qnum">1</span>How big is the AI model you want to run?</h2>
+    <p class="hint">Bigger models give better answers and cost more to run. If you're not sure, Large is the most common choice for a serious assistant.</p>
+    <div class="choices" id="qSize" role="radiogroup" aria-label="Model size"></div>
+  </section>
+  <section class="q">
+    <h2><span class="qnum">2</span>How much use will it get?</h2>
+    <p class="hint">This sets both the hours you pay for and the traffic the machines must keep up with — usually the biggest lever on the bill.</p>
+    <div class="choices" id="qUse" role="radiogroup" aria-label="Usage"></div>
+  </section>
+  <section class="q">
+    <h2><span class="qnum">3</span>What matters most to you?</h2>
+    <p class="hint">Lowest cost accepts machines that can be interrupted and a compressed model. Reliability commits for a year and adds a managed platform.</p>
+    <div class="choices" id="qPri" role="radiogroup" aria-label="Priority"></div>
+  </section>
+
+  <details class="tune" id="tune">
+    <summary>Fine-tune the details</summary>
+    <div class="tunebody"><div class="grid2" id="tuneFields"></div></div>
+  </details>
+
+  <section class="results" id="compareSec">
+    <h2>All four ways to do it</h2>
+    <p class="hint">The same requirement, priced four ways. Self-hosting means renting the GPU machines yourself; pay per token means calling a hosted model.</p>
+    <table id="fourWay" aria-label="Four-way comparison"></table>
+  </section>
+
+  <section class="results">
+    <details class="tune"><summary>The GPU machines behind these numbers (31 options)</summary>
+      <div class="tunebody" style="overflow-x:auto"><table id="machineTable"></table></div>
+    </details>
+    <details class="tune"><summary>The hosted pay-per-token models (21 options)</summary>
+      <div class="tunebody" style="overflow-x:auto"><table id="apiTable"></table></div>
+    </details>
+  </section>
+</div>
+
+<aside>
+  <div class="ledger" aria-live="polite">
+    <div class="head">
+      <div class="label" id="planLabel">Cheapest way to do this</div>
+      <div class="big" id="bigTotal">$—<small> /month</small></div>
+      <div class="yr" id="yrTotal"></div>
+    </div>
+    <div class="bar" id="bar" role="img" aria-label="Cost composition"></div>
+    <div class="legend" id="legend"></div>
+    <div class="rows" id="planRows"></div>
+    <div class="verdict" id="verdict"></div>
+    <div class="warnline" id="warnline" hidden></div>
+    <a class="dl" href="LLM_Hosting_Cost_Calculator.xlsx" download>Download the Excel workbook</a>
+    <div class="note">Undiscounted US list prices. Excludes taxes, negotiated discounts, load balancers, monitoring and one-off setup work. Throughput is a bandwidth model, accurate to roughly a factor of two.</div>
+  </div>
+</aside>
+</div></main>
+
+<footer><div class="wrap">
+  <p><strong>Where the numbers come from.</strong> GPU machine rates from Google Cloud and Azure published price lists and cross-checked trackers; hosted-model rates from Google, Microsoft and Anthropic pricing pages, verified <span id="verifiedDate2">September 2026</span>. Some multi-GPU Azure rates are scaled from the published single-GPU rate and marked as estimates. The Excel workbook contains the full source list, the sizing guide, and a printable executive report.</p>
+  <p><strong>What this can't tell you.</strong> Whether your data is allowed to leave your control (often the real reason to self-host), how a specific model performs on your task, or the price your organisation has actually negotiated. Measure real throughput before committing capacity.</p>
+  <p>This is an independent planning tool. It is not affiliated with or endorsed by Google, Microsoft, NVIDIA, AMD, OpenAI or Anthropic.</p>
+</div></footer>
+
+<script>window.DATA = {
+ "machines": [
+  {
+   "tier": 1,
+   "tierName": "T4 16 GB - entry level",
+   "cloud": "Microsoft Azure",
+   "gpu": "NVIDIA T4",
+   "vramEach": 16,
+   "nGpu": 1,
+   "vram": 16,
+   "name": "Standard_NC4as_T4_v3",
+   "vcpu": 4,
+   "ram": 28,
+   "od": 0.526,
+   "spot": 0.15254,
+   "spotSrc": "Published spot rate",
+   "goodFor": "Small models, demos, dev boxes",
+   "conf": "Published list price",
+   "src": "Azure East US Linux pay-as-you-go (Vantage/CloudPrice)",
+   "bwEach": 320
+  },
+  {
+   "tier": 1,
+   "tierName": "T4 16 GB - entry level",
+   "cloud": "Google Cloud",
+   "gpu": "NVIDIA T4",
+   "vramEach": 16,
+   "nGpu": 1,
+   "vram": 16,
+   "name": "n1-standard-4 + 1x T4",
+   "vcpu": 4,
+   "ram": 15,
+   "od": 0.54,
+   "spot": 0.1782,
+   "spotSrc": "Estimated (cloud default factor)",
+   "goodFor": "Small models, demos, dev boxes",
+   "conf": "Published list price",
+   "src": "GCP: n1-standard-4 $0.1900/hr + T4 $0.35/GPU/hr, us-central1",
+   "bwEach": 320
+  },
+  {
+   "tier": 1,
+   "tierName": "T4 16 GB - entry level",
+   "cloud": "Google Cloud",
+   "gpu": "NVIDIA T4",
+   "vramEach": 16,
+   "nGpu": 1,
+   "vram": 16,
+   "name": "n1-standard-8 + 1x T4",
+   "vcpu": 8,
+   "ram": 30,
+   "od": 0.73,
+   "spot": 0.2409,
+   "spotSrc": "Estimated (cloud default factor)",
+   "goodFor": "Small models with more CPU-side work",
+   "conf": "Published list price",
+   "src": "GCP: n1-standard-8 $0.3800/hr + T4 $0.35/GPU/hr, us-central1",
+   "bwEach": 320
+  },
+  {
+   "tier": 1,
+   "tierName": "T4 16 GB - entry level",
+   "cloud": "Microsoft Azure",
+   "gpu": "NVIDIA T4",
+   "vramEach": 16,
+   "nGpu": 1,
+   "vram": 16,
+   "name": "Standard_NC8as_T4_v3",
+   "vcpu": 8,
+   "ram": 56,
+   "od": 0.752,
+   "spot": 0.256958,
+   "spotSrc": "Published spot rate",
+   "goodFor": "Small models with more CPU-side work",
+   "conf": "Published list price",
+   "src": "Azure East US Linux pay-as-you-go (Vantage/CloudPrice)",
+   "bwEach": 320
+  },
+  {
+   "tier": 1,
+   "tierName": "T4 16 GB - entry level",
+   "cloud": "Google Cloud",
+   "gpu": "NVIDIA T4",
+   "vramEach": 16,
+   "nGpu": 2,
+   "vram": 32,
+   "name": "n1-standard-8 + 2x T4",
+   "vcpu": 8,
+   "ram": 30,
+   "od": 1.08,
+   "spot": 0.3564,
+   "spotSrc": "Estimated (cloud default factor)",
+   "goodFor": "Mid-size model split over 2 cheap GPUs",
+   "conf": "Published list price",
+   "src": "GCP: n1-standard-8 $0.3800/hr + 2x T4 @ $0.35/GPU/hr, us-central1",
+   "bwEach": 320
+  },
+  {
+   "tier": 2,
+   "tierName": "L4 / A10 24 GB - inference workhorse",
+   "cloud": "Google Cloud",
+   "gpu": "NVIDIA L4",
+   "vramEach": 24,
+   "nGpu": 1,
+   "vram": 24,
+   "name": "g2-standard-4",
+   "vcpu": 4,
+   "ram": 16,
+   "od": 0.7068,
+   "spot": 0.2818,
+   "spotSrc": "Published spot rate",
+   "goodFor": "Best value for everyday inference",
+   "conf": "Published list price",
+   "src": "GCP accelerator-optimized pricing, us-central1",
+   "bwEach": 300
+  },
+  {
+   "tier": 2,
+   "tierName": "L4 / A10 24 GB - inference workhorse",
+   "cloud": "Google Cloud",
+   "gpu": "NVIDIA L4",
+   "vramEach": 24,
+   "nGpu": 1,
+   "vram": 24,
+   "name": "g2-standard-8",
+   "vcpu": 8,
+   "ram": 32,
+   "od": 0.8536,
+   "spot": 0.3406,
+   "spotSrc": "Published spot rate",
+   "goodFor": "Everyday inference, more RAM",
+   "conf": "Published list price",
+   "src": "GCP accelerator-optimized pricing, us-central1",
+   "bwEach": 300
+  },
+  {
+   "tier": 2,
+   "tierName": "L4 / A10 24 GB - inference workhorse",
+   "cloud": "Google Cloud",
+   "gpu": "NVIDIA L4",
+   "vramEach": 24,
+   "nGpu": 2,
+   "vram": 48,
+   "name": "g2-standard-24",
+   "vcpu": 24,
+   "ram": 96,
+   "od": 2.0008,
+   "spot": 0.7986,
+   "spotSrc": "Published spot rate",
+   "goodFor": "Two GPUs for larger models",
+   "conf": "Published list price",
+   "src": "GCP accelerator-optimized pricing, us-central1",
+   "bwEach": 300
+  },
+  {
+   "tier": 2,
+   "tierName": "L4 / A10 24 GB - inference workhorse",
+   "cloud": "Microsoft Azure",
+   "gpu": "NVIDIA A10",
+   "vramEach": 24,
+   "nGpu": 1,
+   "vram": 24,
+   "name": "Standard_NV36ads_A10_v5",
+   "vcpu": 36,
+   "ram": 440,
+   "od": 3.2,
+   "spot": 0.59136,
+   "spotSrc": "Published spot rate",
+   "goodFor": "Inference plus heavy CPU pre/post-processing",
+   "conf": "Published list price",
+   "src": "Azure East US Linux pay-as-you-go (Vantage)",
+   "bwEach": 600
+  },
+  {
+   "tier": 2,
+   "tierName": "L4 / A10 24 GB - inference workhorse",
+   "cloud": "Google Cloud",
+   "gpu": "NVIDIA L4",
+   "vramEach": 24,
+   "nGpu": 4,
+   "vram": 96,
+   "name": "g2-standard-48",
+   "vcpu": 48,
+   "ram": 192,
+   "od": 4.0017,
+   "spot": 1.5972,
+   "spotSrc": "Published spot rate",
+   "goodFor": "Four GPUs, high throughput serving",
+   "conf": "Published list price",
+   "src": "GCP accelerator-optimized pricing, us-central1",
+   "bwEach": 300
+  },
+  {
+   "tier": 2,
+   "tierName": "L4 / A10 24 GB - inference workhorse",
+   "cloud": "Google Cloud",
+   "gpu": "NVIDIA L4",
+   "vramEach": 24,
+   "nGpu": 8,
+   "vram": 192,
+   "name": "g2-standard-96",
+   "vcpu": 96,
+   "ram": 384,
+   "od": 8.0033,
+   "spot": 3.1945,
+   "spotSrc": "Published spot rate",
+   "goodFor": "Eight GPUs, high throughput serving",
+   "conf": "Published list price",
+   "src": "GCP accelerator-optimized pricing, us-central1",
+   "bwEach": 300
+  },
+  {
+   "tier": 3,
+   "tierName": "A100 40 GB - training and large inference",
+   "cloud": "Google Cloud",
+   "gpu": "NVIDIA A100 40GB",
+   "vramEach": 40,
+   "nGpu": 1,
+   "vram": 40,
+   "name": "a2-highgpu-1g",
+   "vcpu": 12,
+   "ram": 85,
+   "od": 3.6734,
+   "spot": 1.443,
+   "spotSrc": "Published spot rate",
+   "goodFor": "Entry point for single-GPU A100 work",
+   "conf": "Published list price",
+   "src": "GCP accelerator-optimized pricing, us-central1",
+   "bwEach": 1555
+  },
+  {
+   "tier": 3,
+   "tierName": "A100 40 GB - training and large inference",
+   "cloud": "Google Cloud",
+   "gpu": "NVIDIA A100 40GB",
+   "vramEach": 40,
+   "nGpu": 2,
+   "vram": 80,
+   "name": "a2-highgpu-2g",
+   "vcpu": 24,
+   "ram": 170,
+   "od": 7.3468,
+   "spot": 2.8859,
+   "spotSrc": "Published spot rate",
+   "goodFor": "Fine-tuning mid-size models",
+   "conf": "Published list price",
+   "src": "GCP accelerator-optimized pricing, us-central1",
+   "bwEach": 1555
+  },
+  {
+   "tier": 3,
+   "tierName": "A100 40 GB - training and large inference",
+   "cloud": "Google Cloud",
+   "gpu": "NVIDIA A100 40GB",
+   "vramEach": 40,
+   "nGpu": 4,
+   "vram": 160,
+   "name": "a2-highgpu-4g",
+   "vcpu": 48,
+   "ram": 340,
+   "od": 14.6935,
+   "spot": 5.7718,
+   "spotSrc": "Published spot rate",
+   "goodFor": "Fine-tuning and multi-GPU serving",
+   "conf": "Published list price",
+   "src": "GCP accelerator-optimized pricing, us-central1",
+   "bwEach": 1555
+  },
+  {
+   "tier": 3,
+   "tierName": "A100 40 GB - training and large inference",
+   "cloud": "Google Cloud",
+   "gpu": "NVIDIA A100 40GB",
+   "vramEach": 40,
+   "nGpu": 8,
+   "vram": 320,
+   "name": "a2-highgpu-8g",
+   "vcpu": 96,
+   "ram": 680,
+   "od": 29.3871,
+   "spot": 11.5436,
+   "spotSrc": "Published spot rate",
+   "goodFor": "Lowest-cost 8x A100 node",
+   "conf": "Published list price",
+   "src": "GCP accelerator-optimized pricing, us-central1",
+   "bwEach": 1555
+  },
+  {
+   "tier": 3,
+   "tierName": "A100 40 GB - training and large inference",
+   "cloud": "Google Cloud",
+   "gpu": "NVIDIA A100 40GB",
+   "vramEach": 40,
+   "nGpu": 16,
+   "vram": 640,
+   "name": "a2-megagpu-16g",
+   "vcpu": 96,
+   "ram": 1360,
+   "od": 55.7395,
+   "spot": 21.8738,
+   "spotSrc": "Published spot rate",
+   "goodFor": "16 GPUs in one machine",
+   "conf": "Published list price",
+   "src": "GCP accelerator-optimized pricing, us-central1",
+   "bwEach": 1555
+  },
+  {
+   "tier": 4,
+   "tierName": "A100 80 GB - larger models per GPU",
+   "cloud": "Microsoft Azure",
+   "gpu": "NVIDIA A100 80GB",
+   "vramEach": 80,
+   "nGpu": 1,
+   "vram": 80,
+   "name": "Standard_NC24ads_A100_v4",
+   "vcpu": 24,
+   "ram": 220,
+   "od": 3.673,
+   "spot": 0.67877,
+   "spotSrc": "Published spot rate",
+   "goodFor": "Cheapest single 80 GB GPU on Azure",
+   "conf": "Published list price",
+   "src": "Azure East US Linux pay-as-you-go (Vantage)",
+   "bwEach": 2039
+  },
+  {
+   "tier": 4,
+   "tierName": "A100 80 GB - larger models per GPU",
+   "cloud": "Google Cloud",
+   "gpu": "NVIDIA A100 80GB",
+   "vramEach": 80,
+   "nGpu": 1,
+   "vram": 80,
+   "name": "a2-ultragpu-1g",
+   "vcpu": 12,
+   "ram": 170,
+   "od": 5.0688,
+   "spot": 2.025,
+   "spotSrc": "Published spot rate",
+   "goodFor": "Single 80 GB GPU on GCP",
+   "conf": "Published list price",
+   "src": "GCP accelerator-optimized pricing, us-central1",
+   "bwEach": 2039
+  },
+  {
+   "tier": 4,
+   "tierName": "A100 80 GB - larger models per GPU",
+   "cloud": "Microsoft Azure",
+   "gpu": "NVIDIA A100 80GB",
+   "vramEach": 80,
+   "nGpu": 2,
+   "vram": 160,
+   "name": "Standard_NC48ads_A100_v4",
+   "vcpu": 48,
+   "ram": 440,
+   "od": 7.346,
+   "spot": 1.39574,
+   "spotSrc": "Estimated (cloud default factor)",
+   "goodFor": "Two 80 GB GPUs",
+   "conf": "Scaled from the 1-GPU rate",
+   "src": "Scaled 2x from NC24ads A100 v4 published rate - confirm in Azure calculator",
+   "bwEach": 2039
+  },
+  {
+   "tier": 4,
+   "tierName": "A100 80 GB - larger models per GPU",
+   "cloud": "Google Cloud",
+   "gpu": "NVIDIA A100 80GB",
+   "vramEach": 80,
+   "nGpu": 2,
+   "vram": 160,
+   "name": "a2-ultragpu-2g",
+   "vcpu": 24,
+   "ram": 340,
+   "od": 10.1376,
+   "spot": 4.05,
+   "spotSrc": "Published spot rate",
+   "goodFor": "Two 80 GB GPUs",
+   "conf": "Published list price",
+   "src": "GCP accelerator-optimized pricing, us-central1",
+   "bwEach": 2039
+  },
+  {
+   "tier": 4,
+   "tierName": "A100 80 GB - larger models per GPU",
+   "cloud": "Microsoft Azure",
+   "gpu": "NVIDIA A100 80GB",
+   "vramEach": 80,
+   "nGpu": 4,
+   "vram": 320,
+   "name": "Standard_NC96ads_A100_v4",
+   "vcpu": 96,
+   "ram": 880,
+   "od": 14.692,
+   "spot": 2.79148,
+   "spotSrc": "Estimated (cloud default factor)",
+   "goodFor": "Four 80 GB GPUs",
+   "conf": "Scaled from the 1-GPU rate",
+   "src": "Scaled 4x from NC24ads A100 v4 published rate - confirm in Azure calculator",
+   "bwEach": 2039
+  },
+  {
+   "tier": 4,
+   "tierName": "A100 80 GB - larger models per GPU",
+   "cloud": "Google Cloud",
+   "gpu": "NVIDIA A100 80GB",
+   "vramEach": 80,
+   "nGpu": 4,
+   "vram": 320,
+   "name": "a2-ultragpu-4g",
+   "vcpu": 48,
+   "ram": 680,
+   "od": 20.2752,
+   "spot": 8.1,
+   "spotSrc": "Published spot rate",
+   "goodFor": "Four 80 GB GPUs",
+   "conf": "Published list price",
+   "src": "GCP accelerator-optimized pricing, us-central1",
+   "bwEach": 2039
+  },
+  {
+   "tier": 4,
+   "tierName": "A100 80 GB - larger models per GPU",
+   "cloud": "Google Cloud",
+   "gpu": "NVIDIA A100 80GB",
+   "vramEach": 80,
+   "nGpu": 8,
+   "vram": 640,
+   "name": "a2-ultragpu-8g",
+   "vcpu": 96,
+   "ram": 1360,
+   "od": 40.5504,
+   "spot": 16.2,
+   "spotSrc": "Published spot rate",
+   "goodFor": "Eight 80 GB GPUs, 1,360 GB RAM",
+   "conf": "Published list price",
+   "src": "GCP accelerator-optimized pricing, us-central1",
+   "bwEach": 2039
+  },
+  {
+   "tier": 5,
+   "tierName": "H100 NVL 94 GB - single-GPU Hopper",
+   "cloud": "Microsoft Azure",
+   "gpu": "NVIDIA H100 NVL",
+   "vramEach": 94,
+   "nGpu": 1,
+   "vram": 94,
+   "name": "Standard_NC40ads_H100_v5",
+   "vcpu": 40,
+   "ram": 320,
+   "od": 6.98,
+   "spot": 1.3262,
+   "spotSrc": "Estimated (cloud default factor)",
+   "goodFor": "Only way to rent ONE H100 on either cloud",
+   "conf": "Published list price",
+   "src": "Azure East US / East US 2 / West US 2-3 published rate",
+   "bwEach": 3900
+  },
+  {
+   "tier": 5,
+   "tierName": "H100 NVL 94 GB - single-GPU Hopper",
+   "cloud": "Microsoft Azure",
+   "gpu": "NVIDIA H100 NVL",
+   "vramEach": 94,
+   "nGpu": 2,
+   "vram": 188,
+   "name": "Standard_NC80adis_H100_v5",
+   "vcpu": 80,
+   "ram": 640,
+   "od": 13.96,
+   "spot": 2.6524,
+   "spotSrc": "Estimated (cloud default factor)",
+   "goodFor": "Two H100 NVL GPUs",
+   "conf": "Scaled from the 1-GPU rate",
+   "src": "Scaled 2x from NC40ads H100 v5 published rate - confirm in Azure calculator",
+   "bwEach": 3900
+  },
+  {
+   "tier": 6,
+   "tierName": "H100 SXM 80 GB - 8-GPU training node",
+   "cloud": "Google Cloud",
+   "gpu": "NVIDIA H100 80GB SXM",
+   "vramEach": 80,
+   "nGpu": 8,
+   "vram": 640,
+   "name": "a3-highgpu-8g",
+   "vcpu": 208,
+   "ram": 1872,
+   "od": 88.49,
+   "spot": 29.52,
+   "spotSrc": "Published spot rate",
+   "goodFor": "Large-scale training / very high volume serving",
+   "conf": "Published list price",
+   "src": "GCP accelerator-optimized pricing, us-central1 ($11.06 per GPU-hour)",
+   "bwEach": 3350
+  },
+  {
+   "tier": 6,
+   "tierName": "H100 SXM 80 GB - 8-GPU training node",
+   "cloud": "Microsoft Azure",
+   "gpu": "NVIDIA H100 80GB SXM",
+   "vramEach": 80,
+   "nGpu": 8,
+   "vram": 640,
+   "name": "Standard_ND96isr_H100_v5",
+   "vcpu": 96,
+   "ram": 1900,
+   "od": 98.32,
+   "spot": 18.169536,
+   "spotSrc": "Published spot rate",
+   "goodFor": "Large-scale training with InfiniBand",
+   "conf": "Published list price",
+   "src": "Azure East US Linux pay-as-you-go (Vantage) - $12.29 per GPU-hour",
+   "bwEach": 3350
+  },
+  {
+   "tier": 7,
+   "tierName": "H200 141 GB - biggest memory per Hopper GPU",
+   "cloud": "Google Cloud",
+   "gpu": "NVIDIA H200 141GB",
+   "vramEach": 141,
+   "nGpu": 8,
+   "vram": 1128,
+   "name": "a3-ultragpu-8g",
+   "vcpu": 224,
+   "ram": 2952,
+   "od": 84.81,
+   "spot": 27.9873,
+   "spotSrc": "Estimated (cloud default factor)",
+   "goodFor": "Very large models, long context windows",
+   "conf": "Published rate - reservation, Spot or Flex-start only",
+   "src": "GCP published rate ($10.60 per GPU-hour). A3 Ultra cannot be launched as a normal on-demand VM",
+   "bwEach": 4800
+  },
+  {
+   "tier": 7,
+   "tierName": "H200 141 GB - biggest memory per Hopper GPU",
+   "cloud": "Microsoft Azure",
+   "gpu": "NVIDIA H200 141GB",
+   "vramEach": 141,
+   "nGpu": 8,
+   "vram": 1128,
+   "name": "Standard_ND96isr_H200_v5",
+   "vcpu": 96,
+   "ram": 1850,
+   "od": 110.24,
+   "spot": 110.24,
+   "spotSrc": "No spot rate published for this size",
+   "goodFor": "Very large models, long context windows",
+   "conf": "Published list price",
+   "src": "Azure baseline (Vantage) $110.24/hr; cheapest regions list ~$84.80/hr",
+   "bwEach": 4800
+  },
+  {
+   "tier": 8,
+   "tierName": "MI300X 192 GB - AMD alternative",
+   "cloud": "Microsoft Azure",
+   "gpu": "AMD Instinct MI300X",
+   "vramEach": 192,
+   "nGpu": 8,
+   "vram": 1536,
+   "name": "Standard_ND96isr_MI300X_v5",
+   "vcpu": 96,
+   "ram": 1850,
+   "od": 62.88,
+   "spot": 11.9472,
+   "spotSrc": "Estimated (cloud default factor)",
+   "goodFor": "Big-memory inference; needs ROCm not CUDA",
+   "conf": "Third-party index estimate",
+   "src": "Estimated from ~$7.86 per GPU-hour third-party index - confirm with Microsoft",
+   "bwEach": 5300
+  },
+  {
+   "tier": 9,
+   "tierName": "B200 180 GB - newest Blackwell",
+   "cloud": "Google Cloud",
+   "gpu": "NVIDIA B200 180GB",
+   "vramEach": 180,
+   "nGpu": 8,
+   "vram": 1440,
+   "name": "a4-highgpu-8g",
+   "vcpu": 224,
+   "ram": 3968,
+   "od": 39.6336,
+   "spot": 39.6336,
+   "spotSrc": "A4 sells only as reservation, Spot or Flex-start",
+   "goodFor": "Frontier-scale training, highest throughput",
+   "conf": "Published rate - no standard on-demand",
+   "src": "About $4.95 per GPU-hour. Trackers range $34-40/hr for the node; A4 cannot be launched as a normal on-demand VM",
+   "bwEach": 8000
+  }
+ ],
+ "apiModels": [
+  {
+   "name": "Gemini 2.5 Flash-Lite",
+   "cloud": "Google Cloud",
+   "provider": "Google",
+   "inP": 0.1,
+   "outP": 0.4,
+   "ctx": "1M",
+   "goodFor": "Cheapest option anywhere. Classification, tagging, extraction",
+   "conf": "Published - RETIRES 16 Oct 2026"
+  },
+  {
+   "name": "Gemini 3.1 Flash-Lite",
+   "cloud": "Google Cloud",
+   "provider": "Google",
+   "inP": 0.25,
+   "outP": 1.5,
+   "ctx": "1M",
+   "goodFor": "High-volume production on the current generation",
+   "conf": "Published list price"
+  },
+  {
+   "name": "Gemini 3.5 Flash-Lite",
+   "cloud": "Google Cloud",
+   "provider": "Google",
+   "inP": 0.3,
+   "outP": 2.5,
+   "ctx": "1M",
+   "goodFor": "High volume where newer model behaviour matters",
+   "conf": "Published list price"
+  },
+  {
+   "name": "Gemini 3 Flash",
+   "cloud": "Google Cloud",
+   "provider": "Google",
+   "inP": 0.5,
+   "outP": 3,
+   "ctx": "1M",
+   "goodFor": "Balanced speed and capability, previous generation",
+   "conf": "Published list price"
+  },
+  {
+   "name": "Gemini 3.7 Flash",
+   "cloud": "Google Cloud",
+   "provider": "Google",
+   "inP": 0.75,
+   "outP": 3.75,
+   "ctx": "1M",
+   "goodFor": "Current default workhorse. Introductory rate",
+   "conf": "Intro price to 31 Dec 2026, then $1.50/$7.50"
+  },
+  {
+   "name": "Gemini 3.6 Flash",
+   "cloud": "Google Cloud",
+   "provider": "Google",
+   "inP": 0.75,
+   "outP": 3.75,
+   "ctx": "1M",
+   "goodFor": "Workhorse tier, introductory rate",
+   "conf": "Intro price to 31 Dec 2026, then $1.50/$7.50"
+  },
+  {
+   "name": "Claude Haiku 4.5 (Vertex AI)",
+   "cloud": "Google Cloud",
+   "provider": "Anthropic",
+   "inP": 1,
+   "outP": 5,
+   "ctx": "200K",
+   "goodFor": "Fast, cheap Claude for extraction and routing",
+   "conf": "Published list price"
+  },
+  {
+   "name": "Gemini 3.5 Flash",
+   "cloud": "Google Cloud",
+   "provider": "Google",
+   "inP": 1.5,
+   "outP": 9,
+   "ctx": "1M",
+   "goodFor": "Frontier-class speed tier with grounding",
+   "conf": "Published list price"
+  },
+  {
+   "name": "Claude Sonnet 5 (Vertex AI)",
+   "cloud": "Google Cloud",
+   "provider": "Anthropic",
+   "inP": 2,
+   "outP": 10,
+   "ctx": "1M",
+   "goodFor": "Best price-performance Claude. Agentic work, coding",
+   "conf": "Published list price"
+  },
+  {
+   "name": "Gemini 3.1 Pro",
+   "cloud": "Google Cloud",
+   "provider": "Google",
+   "inP": 2,
+   "outP": 12,
+   "ctx": "1M",
+   "goodFor": "Google flagship reasoning. $4/$18 above 200K tokens",
+   "conf": "Published list price"
+  },
+  {
+   "name": "Claude Opus 5 (Vertex AI)",
+   "cloud": "Google Cloud",
+   "provider": "Anthropic",
+   "inP": 5,
+   "outP": 25,
+   "ctx": "1M",
+   "goodFor": "Hardest reasoning, long-running agents",
+   "conf": "Published list price"
+  },
+  {
+   "name": "GPT-5.6 Luna",
+   "cloud": "Microsoft Azure",
+   "provider": "OpenAI",
+   "inP": 0.2,
+   "outP": 1.2,
+   "ctx": "1.05M",
+   "goodFor": "Cheapest GPT-5.6 tier. High-volume work",
+   "conf": "List parity with OpenAI from 1 Aug 2026 - SEE BILLING NOTE"
+  },
+  {
+   "name": "GPT-5.4 mini",
+   "cloud": "Microsoft Azure",
+   "provider": "OpenAI",
+   "inP": 0.75,
+   "outP": 4.5,
+   "ctx": "400K",
+   "goodFor": "Small previous-generation model",
+   "conf": "Published list price"
+  },
+  {
+   "name": "Claude Haiku 4.5 (Foundry)",
+   "cloud": "Microsoft Azure",
+   "provider": "Anthropic",
+   "inP": 1,
+   "outP": 5,
+   "ctx": "200K",
+   "goodFor": "Fast, cheap Claude on Azure",
+   "conf": "Published list price"
+  },
+  {
+   "name": "GPT-5.1",
+   "cloud": "Microsoft Azure",
+   "provider": "OpenAI",
+   "inP": 1.25,
+   "outP": 10,
+   "ctx": "1M",
+   "goodFor": "Older family, still on the price sheet",
+   "conf": "Published list price"
+  },
+  {
+   "name": "Claude Sonnet 5 (Foundry)",
+   "cloud": "Microsoft Azure",
+   "provider": "Anthropic",
+   "inP": 2,
+   "outP": 10,
+   "ctx": "1M",
+   "goodFor": "Best price-performance Claude on Azure",
+   "conf": "Published list price"
+  },
+  {
+   "name": "GPT-5.6 Terra",
+   "cloud": "Microsoft Azure",
+   "provider": "OpenAI",
+   "inP": 2,
+   "outP": 12,
+   "ctx": "1.05M",
+   "goodFor": "The production default for most workloads",
+   "conf": "List parity with OpenAI from 1 Aug 2026 - SEE BILLING NOTE"
+  },
+  {
+   "name": "GPT-5.4",
+   "cloud": "Microsoft Azure",
+   "provider": "OpenAI",
+   "inP": 2.5,
+   "outP": 15,
+   "ctx": "400K",
+   "goodFor": "Previous-generation mid tier",
+   "conf": "Published list price"
+  },
+  {
+   "name": "Claude Opus 5 (Foundry)",
+   "cloud": "Microsoft Azure",
+   "provider": "Anthropic",
+   "inP": 5,
+   "outP": 25,
+   "ctx": "1M",
+   "goodFor": "Hardest reasoning Claude on Azure",
+   "conf": "Published list price"
+  },
+  {
+   "name": "GPT-5.6 Sol",
+   "cloud": "Microsoft Azure",
+   "provider": "OpenAI",
+   "inP": 5,
+   "outP": 30,
+   "ctx": "1.05M",
+   "goodFor": "OpenAI flagship. Frontier coding and reasoning",
+   "conf": "Published list price"
+  },
+  {
+   "name": "GPT-5.5",
+   "cloud": "Microsoft Azure",
+   "provider": "OpenAI",
+   "inP": 5,
+   "outP": 30,
+   "ctx": "1M",
+   "goodFor": "Previous flagship, same rate as Sol",
+   "conf": "Published list price"
+  }
+ ],
+ "rates": {
+  "storage": {
+   "Economy (HDD)": [
+    0.04,
+    0.046
+   ],
+   "Standard SSD": [
+    0.1,
+    0.048
+   ],
+   "Balanced SSD (recommended)": [
+    0.1,
+    0.081
+   ],
+   "High performance SSD": [
+    0.17,
+    0.132
+   ]
+  },
+  "egressFree": [
+   1,
+   100
+  ],
+  "egressGcp": [
+   0.12,
+   0.11,
+   0.08
+  ],
+  "egressAzure": 0.087,
+  "region": {
+   "US (baseline)": [
+    1,
+    1
+   ],
+   "Western Europe": [
+    1.1,
+    1.19
+   ],
+   "Asia-Pacific": [
+    1.15,
+    1.3
+   ],
+   "Australia": [
+    1.15,
+    1.33
+   ]
+  },
+  "spotDefault": [
+   0.33,
+   0.19
+  ],
+  "oneYear": [
+   0.7,
+   0.65
+  ],
+  "managed": [
+   0.26,
+   0.25
+  ],
+  "bytesPerParam": {
+   "fp16": 2,
+   "int8": 1,
+   "int4": 0.5
+  },
+  "support": {
+   "Low": 20,
+   "Medium": 60,
+   "High": 160
+  },
+  "supThresholds": [
+   13,
+   70
+  ],
+  "laborRate": 116,
+  "batch": 16,
+  "derate": 0.7,
+  "prefill": 10,
+  "hoursMonth": 730,
+  "verified": "September 2026",
+  "verifiedISO": "2026-09-02"
+ }
+};</script>
+<script>// engine.js — the single calculation engine. Ported from, and tested against, the Excel workbook.
+// Pure functions, no DOM. Used by index.html and by the node parity test.
+"use strict";
+
+const GCP = "Google Cloud", AZ = "Microsoft Azure";
+
+function requiredGB(pb, prec, headroom, rates) {
+  return Math.ceil(pb * rates.bytesPerParam[prec] * (1 + headroom));
+}
+
+function machineRate(m, pricing, rates) {
+  const cg = m.cloud === GCP ? 0 : 1;
+  if (pricing === "spot") return m.spot;
+  if (pricing === "1yr") return m.od * rates.oneYear[cg];
+  return m.od;
+}
+
+function tokensPerSec(m, modelGB, rates) {
+  if (modelGB <= 0) return 0;
+  return (m.bwEach * m.nGpu) / modelGB * rates.batch * rates.derate;
+}
+
+function egressCost(gb, cloud, rates) {
+  if (cloud === GCP) {
+    const [a, b, c] = rates.egressGcp, f = rates.egressFree[0];
+    return Math.max(Math.min(gb, 1024) - f, 0) * a
+         + Math.min(Math.max(gb - 1024, 0), 9216) * b
+         + Math.max(gb - 10240, 0) * c;
+  }
+  return Math.max(gb - rates.egressFree[1], 0) * rates.egressAzure;
+}
+
+function supportLevel(pb, rates) {
+  const [t1, t2] = rates.supThresholds;
+  return pb <= t1 ? "Low" : pb <= t2 ? "Medium" : "High";
+}
+
+// p: {pb, prec, headroom, copies, cloud('both'|GCP|AZ), region, pricing('od'|'spot'|'1yr'),
+//     hpd, dpm, disk, diskType, egress, managed, supLevel(null=auto), supHours(null=table),
+//     laborRate, infOn, reqs, inTok, outTok, peak, machine(null=auto: name)}
+function compute(p, data) {
+  const R = data.rates;
+  const modelGB = p.pb * R.bytesPerParam[p.prec];
+  const need = requiredGB(p.pb, p.prec, p.headroom, R);
+  const hours = p.hpd * p.dpm;
+
+  let peakTps = 0, avgTps = 0;
+  if (p.infOn && hours > 0) {
+    const eff = p.outTok + p.inTok / R.prefill;
+    avgTps = p.reqs * eff / (hours * 3600);
+    peakTps = avgTps * p.peak;
+  }
+
+  const machinesNeeded = m => {
+    if (peakTps <= 0) return 1;
+    const t = tokensPerSec(m, modelGB, R);
+    return t > 0 ? Math.max(1, Math.ceil(peakTps / t)) : 1e9;
+  };
+
+  // pick: cheapest cost-to-meet-the-load among machines that fit; tie-break = fewer machines
+  let chosen = null, chosenM = 1;
+  if (p.machine) {
+    chosen = data.machines.find(m => m.name === p.machine) || null;
+    if (chosen && chosen.vram < need) { /* honoured but flagged by caller */ }
+    if (chosen) chosenM = machinesNeeded(chosen);
+  } else {
+    let best = Infinity;
+    for (const m of data.machines) {
+      if (p.cloud !== "both" && m.cloud !== p.cloud) continue;
+      if (m.vram < need) continue;
+      const k = machinesNeeded(m);
+      const rank = machineRate(m, p.pricing, R) * k + k / 1e6;
+      if (rank < best) { best = rank; chosen = m; chosenM = k; }
+    }
+  }
+  if (!chosen) return { fits: false, need, modelGB, peakTps, avgTps };
+
+  const cg = chosen.cloud === GCP ? 0 : 1;
+  const uplift = R.region[p.region][cg];
+  const copies = Math.max(p.copies, chosenM);
+  const rate = machineRate(chosen, p.pricing, R) * uplift;
+  const computeCost = rate * hours * copies;
+  const storage = p.disk * copies * R.storage[p.diskType][cg];
+  const egress = egressCost(p.egress, chosen.cloud, R);
+  const managed = p.managed ? computeCost * R.managed[cg] : 0;
+  const level = p.supLevel || supportLevel(p.pb, R);
+  const supHours = p.supHours != null ? p.supHours : R.support[level];
+  const labor = supHours * p.laborRate;
+  const total = computeCost + storage + egress + managed + labor;
+  const tps = tokensPerSec(chosen, modelGB, R);
+  const singleUser = modelGB > 0 ? (chosen.bwEach * chosen.nGpu) / modelGB * R.derate : 0;
+  const outTokMonth = p.reqs * p.outTok;
+
+  return {
+    fits: true, need, modelGB, machine: chosen, machines: chosenM, copies,
+    rate, hours, computeCost, storage, egress, managed, labor, level, supHours, total,
+    annual: total * 12, tps, singleUser, peakTps, avgTps,
+    headroomAtPeak: peakTps > 0 ? tps * copies / peakTps - 1 : null,
+    costPerMTok: p.infOn && outTokMonth > 0 ? total / (outTokMonth / 1e6) : null,
+    memoryFitOnly: chosen.vram < need,
+  };
+}
+
+// pay-per-token cost for one hosted model
+function apiCost(model, reqs, inTok, outTok, apiHours, laborRate) {
+  const tokens = reqs * inTok / 1e6 * model.inP + reqs * outTok / 1e6 * model.outP;
+  const labor = apiHours * laborRate;
+  return { tokens, labor, total: tokens + labor,
+           costPerMTok: reqs * outTok > 0 ? tokens / (reqs * outTok / 1e6) : 0 };
+}
+
+function cheapestApi(data, cloud, reqs, inTok, outTok) {
+  let best = null, bestCost = Infinity;
+  for (const m of data.apiModels) {
+    if (cloud && m.cloud !== cloud) continue;
+    const c = reqs * inTok / 1e6 * m.inP + reqs * outTok / 1e6 * m.outP;
+    if (c < bestCost) { bestCost = c; best = m; }
+  }
+  return { model: best, tokens: bestCost };
+}
+
+
+</script>
+<script>
+"use strict";
+const D = window.DATA;
+const fmt$ = n => "$" + Math.round(n).toLocaleString("en-US");
+const fmt = n => Math.round(n).toLocaleString("en-US");
+
+/* ---------------- state ---------------- */
+const SIZE = [
+  {id:"small", label:"Small", desc:"Simple chatbot, tagging text, autocomplete", pb:8, disk:200},
+  {id:"medium",label:"Medium",desc:"A capable general-purpose assistant", pb:32, disk:300},
+  {id:"large", label:"Large", desc:"Top-tier assistant, complex reasoning, long documents", pb:70, disk:500},
+  {id:"xl",    label:"Very large", desc:"Frontier-class, the biggest open models", pb:405, disk:2000},
+];
+const USE = [
+  {id:"test", label:"Just a few people, trying it out", desc:"Office hours, light traffic", hpd:8, dpm:22, copies:1, egress:100, reqs:10000},
+  {id:"team", label:"One team, during working hours", desc:"Steady daytime use", hpd:10, dpm:22, copies:1, egress:500, reqs:100000},
+  {id:"dept", label:"A whole department, around the clock", desc:"Always on", hpd:24, dpm:30.42, copies:1, egress:2000, reqs:500000},
+  {id:"cust", label:"Customer-facing, around the clock, with a spare", desc:"Always on, high volume, redundancy", hpd:24, dpm:30.42, copies:2, egress:10000, reqs:5000000},
+];
+const PRI = [
+  {id:"cost", label:"Lowest possible cost", desc:"Compressed model, interruptible machines", prec:"int4", pricing:"spot", managed:false},
+  {id:"bal",  label:"A balance of cost and reliability", desc:"The sensible middle", prec:"int8", pricing:"od", managed:false},
+  {id:"rel",  label:"Reliability and answer quality above all", desc:"Full precision, 1-year commitment, managed platform", prec:"fp16", pricing:"1yr", managed:true},
+];
+const S = { size:"large", use:"dept", pri:"bal",
+  pb:null, headroom:0.30, copies:null, cloud:"both", region:"US (baseline)",
+  pricing:null, prec:null, hpd:null, dpm:null, disk:null, diskType:"Balanced SSD (recommended)",
+  egress:null, managed:null, supLevel:"", supHours:"", laborRate:116, apiHours:20,
+  reqs:null, inTok:800, outTok:400, peak:3 };
+
+function resolved(){
+  const sz=SIZE.find(s=>s.id===S.size), us=USE.find(u=>u.id===S.use), pr=PRI.find(p=>p.id===S.pri);
+  return {
+    pb:S.pb??sz.pb, prec:S.prec??pr.prec, headroom:S.headroom,
+    copies:S.copies??us.copies, cloud:S.cloud, region:S.region,
+    pricing:S.pricing??pr.pricing, hpd:S.hpd??us.hpd, dpm:S.dpm??us.dpm,
+    disk:S.disk??sz.disk, diskType:S.diskType, egress:S.egress??us.egress,
+    managed:S.managed??pr.managed,
+    supLevel:S.supLevel||null, supHours:S.supHours===""?null:+S.supHours,
+    laborRate:+S.laborRate, infOn:true, reqs:S.reqs??us.reqs,
+    inTok:+S.inTok, outTok:+S.outTok, peak:+S.peak, machine:null };
+}
+
+/* ---------------- question cards ---------------- */
+function radios(el, opts, key){
+  el.innerHTML = opts.map(o=>`
+    <label class="choice"><input type="radio" name="${key}" value="${o.id}" ${S[key]===o.id?"checked":""}>
+      <span><b>${o.label}</b><small>${o.desc}</small></span></label>`).join("");
+  el.addEventListener("change", e=>{ S[key]=e.target.value; syncTune(); render(); });
+}
+radios(document.getElementById("qSize"), SIZE, "size");
+radios(document.getElementById("qUse"),  USE,  "use");
+radios(document.getElementById("qPri"),  PRI,  "pri");
+
+/* ---------------- fine-tune fields ---------------- */
+const FIELDS = [
+  {g:"The model"},
+  {k:"pb", label:"Model size (billions of parameters)", type:"num", step:1, why:"8 = small, 70 = large, 405 = very large"},
+  {k:"prec", label:"Precision", type:"sel", opts:[["fp16","FP16 — best quality"],["int8","FP8 / INT8 — balanced"],["int4","INT4 — smallest and cheapest"]], why:"INT4 needs a quarter of the memory of FP16"},
+  {k:"headroom", label:"Memory headroom", type:"num", step:0.05, why:"0.30 covers the conversation cache for most uses"},
+  {k:"copies", label:"Minimum copies to run", type:"num", step:1, why:"Raised automatically if the traffic needs more"},
+  {g:"Where it runs"},
+  {k:"cloud", label:"Cloud", type:"sel", opts:[["both","Compare both"],["Google Cloud","Google Cloud only"],["Microsoft Azure","Microsoft Azure only"]]},
+  {k:"region", label:"Region", type:"sel", opts:[["US (baseline)","US (cheapest)"],["Western Europe","Western Europe"],["Asia-Pacific","Asia-Pacific"],["Australia","Australia"]], why:"Non-US regions add a rough uplift"},
+  {k:"pricing", label:"Pricing model", type:"sel", opts:[["od","On-demand (pay as you go)"],["spot","Spot — cheapest, can be interrupted"],["1yr","1-year commitment"]]},
+  {k:"hpd", label:"Hours running per day", type:"num", step:1, why:"Idle machines cost full price — the biggest lever"},
+  {k:"dpm", label:"Days running per month", type:"num", step:0.1},
+  {g:"Traffic (drives machine count and the pay-per-token price)"},
+  {k:"reqs", label:"Requests per month", type:"num", step:1000},
+  {k:"inTok", label:"Input tokens per request", type:"num", step:100, why:"About 600 words is 800 tokens"},
+  {k:"outTok", label:"Output tokens per request", type:"num", step:100, why:"The expensive half"},
+  {k:"peak", label:"Peak-to-average factor", type:"num", step:0.5, why:"3 means the busiest hour is 3x the average"},
+  {g:"Storage and data"},
+  {k:"disk", label:"Disk per copy (GB)", type:"num", step:50},
+  {k:"diskType", label:"Disk type", type:"sel", opts:[["Economy (HDD)","Economy (HDD)"],["Standard SSD","Standard SSD"],["Balanced SSD (recommended)","Balanced SSD (recommended)"],["High performance SSD","High performance SSD"]]},
+  {k:"egress", label:"Data out to users (GB/month)", type:"num", step:100, why:"Only data leaving the cloud is charged"},
+  {k:"managed", label:"Managed AI platform", type:"sel", opts:[["false","No — plain virtual machines"],["true","Yes — Vertex AI / Azure ML (~25% on compute)"]]},
+  {g:"The people"},
+  {k:"supLevel", label:"Support level", type:"sel", opts:[["","Recommended from model size"],["Low","Low — 20 hrs/month"],["Medium","Medium — 60 hrs/month"],["High","High — 160 hrs/month"]]},
+  {k:"supHours", label:"Override support hours", type:"num", step:5, why:"Leave blank to use the level above", blank:true},
+  {k:"laborRate", label:"Engineer cost per hour ($)", type:"num", step:1},
+  {k:"apiHours", label:"Engineer hours if paying per token", type:"num", step:5, why:"Far less to look after than machines"},
+];
+function syncTune(){
+  const r = resolved();
+  for (const f of FIELDS){
+    if (f.g) continue;
+    const el = document.getElementById("f_"+f.k);
+    if (!el) continue;
+    if (f.k==="managed") el.value = String(r.managed);
+    else if (f.k==="apiHours") el.value = S.apiHours;
+    else if (f.k in r) el.value = (f.blank && S[f.k]==="") ? "" : r[f.k];
+    else el.value = S[f.k];
+  }
+}
+document.getElementById("tuneFields").innerHTML = FIELDS.map(f=>{
+  if (f.g) return `<div class="groupname">${f.g}</div>`;
+  const why = f.why?` <span class="why">— ${f.why}</span>`:"";
+  if (f.type==="sel"){
+    return `<div class="field"><label for="f_${f.k}">${f.label}${why}</label>
+      <select id="f_${f.k}">${f.opts.map(o=>`<option value="${o[0]}">${o[1]}</option>`).join("")}</select></div>`;
+  }
+  return `<div class="field"><label for="f_${f.k}">${f.label}${why}</label>
+    <input id="f_${f.k}" type="number" step="${f.step||1}" min="0"></div>`;
+}).join("");
+document.getElementById("tuneFields").addEventListener("change", e=>{
+  const k = e.target.id.replace("f_","");
+  let v = e.target.value;
+  if (k==="managed") S.managed = (v==="true");
+  else if (k==="supLevel"||k==="prec"||k==="pricing"||k==="cloud"||k==="region"||k==="diskType") S[k]=v;
+  else if (v==="") S[k] = (k==="supHours") ? "" : null;
+  else S[k] = +v;
+  render();
+});
+
+/* ---------------- render ---------------- */
+const COLORS = {compute:"#0F5C4F", storage:"#7BA69B", egress:"#C7B27A", managed:"#9A8FB8", labor:"#3E4A54"};
+const NAMES  = {compute:"GPU machines", storage:"Storage", egress:"Data out", managed:"Managed platform", labor:"People"};
+
+function render(){
+  const p = resolved();
+  const self = compute(p, D);
+  const gcpSelf = compute({...p, cloud:GCP}, D);
+  const azSelf  = compute({...p, cloud:AZ}, D);
+  const gcpApi = cheapestApi(D, GCP, p.reqs, p.inTok, p.outTok);
+  const azApi  = cheapestApi(D, AZ,  p.reqs, p.inTok, p.outTok);
+  const apiLabor = S.apiHours * p.laborRate;
+  const gcpApiTotal = gcpApi.tokens + apiLabor, azApiTotal = azApi.tokens + apiLabor;
+
+  const options = [];
+  if (gcpSelf.fits) options.push({kind:"self", cloud:GCP, r:gcpSelf, total:gcpSelf.total, name:gcpSelf.machine.name});
+  if (azSelf.fits)  options.push({kind:"self", cloud:AZ,  r:azSelf,  total:azSelf.total,  name:azSelf.machine.name});
+  options.push({kind:"api", cloud:GCP, m:gcpApi.model, total:gcpApiTotal, tokens:gcpApi.tokens});
+  options.push({kind:"api", cloud:AZ,  m:azApi.model,  total:azApiTotal,  tokens:azApi.tokens});
+  options.sort((a,b)=>a.total-b.total);
+  const best = options[0];
+
+  /* ledger */
+  document.getElementById("planLabel").textContent =
+    best.kind==="api" ? `Cheapest: pay per token — ${best.m.name}` : `Cheapest: rent machines — ${best.name}`;
+  document.getElementById("bigTotal").innerHTML = fmt$(best.total) + "<small> /month</small>";
+  document.getElementById("yrTotal").textContent = fmt$(best.total*12) + " per year at this usage";
+
+  let parts;
+  if (best.kind==="api"){
+    parts = {compute:best.tokens, storage:0, egress:0, managed:0, labor:apiLabor};
+    NAMES.compute = "Model tokens";
+  } else {
+    const r = best.r;
+    parts = {compute:r.computeCost, storage:r.storage, egress:r.egress, managed:r.managed, labor:r.labor};
+    NAMES.compute = "GPU machines";
+  }
+  const total = Object.values(parts).reduce((a,b)=>a+b,0) || 1;
+  document.getElementById("bar").innerHTML = Object.entries(parts)
+    .filter(([,v])=>v>0).map(([k,v])=>`<span style="width:${v/total*100}%;background:${COLORS[k]}"></span>`).join("");
+  document.getElementById("legend").innerHTML = Object.entries(parts)
+    .filter(([,v])=>v>0).map(([k,v])=>`<span><i style="background:${COLORS[k]}"></i>${NAMES[k]} ${fmt$(v)}</span>`).join("");
+
+  const rows = [];
+  if (best.kind==="self"){
+    const r=best.r;
+    rows.push(["Machine", r.machine.name],
+              ["GPU", `${r.machine.nGpu} × ${r.machine.gpu}`],
+              ["Machines needed", `${r.copies}${r.machines>1?" (set by the traffic)":""}`],
+              ["One user would see", `${fmt(r.singleUser)} tokens/sec`],
+              ["Cost per 1M output tokens", r.costPerMTok?fmt$(r.costPerMTok):"—"]);
+  } else {
+    rows.push(["Model", best.m.name],
+              ["Built by", best.m.provider],
+              ["Cost per 1M output tokens", "$"+(best.tokens/(p.reqs*p.outTok/1e6)).toFixed(2)],
+              ["Nothing to keep alive", "the provider runs the machines"]);
+  }
+  document.getElementById("planRows").innerHTML =
+    rows.map(([k,v])=>`<div class="row"><span class="k">${k}</span><span class="v">${v}</span></div>`).join("");
+
+  /* verdict */
+  const runnerUp = options[1];
+  const v = document.getElementById("verdict");
+  if (!gcpSelf.fits && !azSelf.fits){
+    v.className="verdict warn";
+    v.innerHTML = `No single machine has enough GPU memory (${compute(p,D).need??""} GB needed) to self-host this model, so paying per token is the only route shown.`;
+  } else {
+    v.className="verdict";
+    const saving = runnerUp.total - best.total;
+    v.innerHTML = `<b>${best.kind==="api"?"Paying per token":"Running your own machines"}</b> is the cheapest of the four options here — ${fmt$(saving)}/month less than the next best. ` +
+      (best.kind==="api"
+        ? "Self-hosting usually only wins at much heavier steady traffic, or when the data cannot leave your control."
+        : "There is enough traffic here to keep your own machines busy.");
+  }
+  const w = document.getElementById("warnline");
+  const warns=[];
+  if (best.kind==="self"){
+    const r=best.r;
+    if (r.singleUser<10) warns.push("Each user would see under 10 tokens/sec on this machine — noticeably slow.");
+    if (/estimate|tracker|Scaled|no standard/i.test(r.machine.conf)) warns.push(`The rate for ${r.machine.name} is ${r.machine.conf.toLowerCase()} — confirm it before budgeting.`);
+  }
+  if (best.kind==="api" && /BILLING NOTE/i.test(best.m.conf)) warns.push("Customers have reported Azure billing above this list rate for GPT-5.6 — verify in Azure Cost Management.");
+  w.hidden = !warns.length; w.textContent = warns.join(" ");
+
+  /* four-way table */
+  const tw = document.getElementById("fourWay");
+  const cell = o => o ? `${o.kind==="api"?o.m.name:(o.name||"—")}` : "—";
+  const line = (label, g, a) => `<tr><td>${label}</td><td class="num">${g}</td><td class="num">${a}</td></tr>`;
+  tw.innerHTML = `<tr><th></th><th class="num">Google Cloud</th><th class="num">Microsoft Azure</th></tr>` +
+    line("Rent machines — cheapest that fits and keeps up",
+         gcpSelf.fits?`${gcpSelf.machine.name}<br><b>${fmt$(gcpSelf.total)}/mo</b>`:"no machine big enough",
+         azSelf.fits?`${azSelf.machine.name}<br><b>${fmt$(azSelf.total)}/mo</b>`:"no machine big enough") +
+    line("Pay per token — cheapest hosted model",
+         `${gcpApi.model.name}<br><b>${fmt$(gcpApiTotal)}/mo</b>`,
+         `${azApi.model.name}<br><b>${fmt$(azApiTotal)}/mo</b>`) +
+    `<tr><td>Cheapest of all four</td><td colspan="2"><b>${best.kind==="api"?"Pay per token":"Self-host"} on ${best.cloud} — ${fmt$(best.total)}/month</b> (${cell(best)})</td></tr>`;
+
+  saveURL(p);
+}
+
+/* ---------------- tables ---------------- */
+function machineTable(){
+  const t=document.getElementById("machineTable");
+  t.innerHTML = `<tr><th>Tier</th><th>Machine</th><th>Cloud</th><th>GPU</th><th class="num">GPU mem (GB)</th><th class="num">$/hour</th><th class="num">Spot $/hr</th><th>Price confidence</th></tr>` +
+    D.machines.map(m=>`<tr><td>${m.tier}</td><td>${m.name}</td><td>${m.cloud.replace("Microsoft ","").replace("Google ","G. ")}</td>
+      <td>${m.nGpu} × ${m.gpu}</td><td class="num">${fmt(m.vram)}</td><td class="num">${m.od.toFixed(2)}</td>
+      <td class="num">${m.spot.toFixed(2)}</td>
+      <td><span class="pill ${/Published list/.test(m.conf)?"":"est"}">${m.conf}</span></td></tr>`).join("");
+}
+function apiTable(){
+  const t=document.getElementById("apiTable");
+  t.innerHTML = `<tr><th>Model</th><th>Runs on</th><th>Built by</th><th class="num">$/1M in</th><th class="num">$/1M out</th><th>Good for</th></tr>` +
+    D.apiModels.map(m=>`<tr><td>${m.name}</td><td>${m.cloud.replace("Microsoft ","").replace("Google ","G. ")}</td>
+      <td>${m.provider}</td><td class="num">${m.inP.toFixed(2)}</td><td class="num">${m.outP.toFixed(2)}</td><td>${m.goodFor}</td></tr>`).join("");
+}
+machineTable(); apiTable();
+
+/* ---------------- share / staleness ---------------- */
+function saveURL(p){
+  const q=new URLSearchParams({s:S.size,u:S.use,p:S.pri});
+  for (const k of ["pb","copies","hpd","dpm","disk","egress","reqs"]) if (S[k]!=null) q.set(k,S[k]);
+  for (const k of ["cloud","region","prec","pricing"]) if (S[k]) q.set(k,S[k]);
+  history.replaceState(null,"","?"+q.toString());
+}
+(function loadURL(){
+  const q=new URLSearchParams(location.search);
+  if (q.get("s")) S.size=q.get("s");
+  if (q.get("u")) S.use=q.get("u");
+  if (q.get("p")) S.pri=q.get("p");
+  for (const k of ["pb","copies","hpd","dpm","disk","egress","reqs"]) if (q.get(k)) S[k]=+q.get(k);
+  for (const k of ["cloud","region","prec","pricing"]) if (q.get(k)) S[k]=q.get(k);
+  document.querySelectorAll("input[type=radio]").forEach(r=>{ r.checked = S[r.name]===r.value; });
+})();
+(function staleness(){
+  const days=(Date.now()-new Date(D.rates.verifiedISO))/86400000;
+  if (days>45) document.getElementById("staleBanner").style.display="block";
+  document.getElementById("verifiedDate").textContent = D.rates.verified;
+  document.getElementById("verifiedDate2").textContent = D.rates.verified;
+})();
+syncTune(); render();
+</script>
+</body>
+</html>
