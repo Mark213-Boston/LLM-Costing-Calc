@@ -1090,9 +1090,9 @@ footer .wrap{padding:22px 20px 30px;max-width:1140px}
    "int4": 0.5
   },
   "support": {
-   "Low": 20,
-   "Medium": 60,
-   "High": 160
+   "Low": 10,
+   "Medium": 20,
+   "High": 30
   },
   "supThresholds": [
    13,
@@ -1308,7 +1308,7 @@ const FIELDS = [
   {k:"egress", label:"Data out to users (GB/month)", type:"num", step:100, why:"Only data leaving the cloud is charged"},
   {k:"managed", label:"Managed AI platform", type:"sel", opts:[["false","No — plain virtual machines"],["true","Yes — Vertex AI / Azure ML (~25% on compute)"]]},
   {g:"The people"},
-  {k:"supLevel", label:"Support level", type:"sel", opts:[["","Recommended from model size"],["Low","Low — 20 hrs/month"],["Medium","Medium — 60 hrs/month"],["High","High — 160 hrs/month"]]},
+  {k:"supLevel", label:"Support level", type:"sel", opts:[["","Recommended from model size"],["Low","Low — 10 hrs/month"],["Medium","Medium — 20 hrs/month"],["High","High — 30 hrs/month"]]},
   {k:"supHours", label:"Override support hours", type:"num", step:5, why:"Leave blank to use the level above", blank:true},
   {k:"laborRate", label:"Engineer cost per hour ($)", type:"num", step:1},
   {k:"apiHours", label:"Engineer hours if paying per token", type:"num", step:5, why:"Far less to look after than machines"},

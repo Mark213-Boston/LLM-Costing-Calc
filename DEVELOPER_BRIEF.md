@@ -97,7 +97,7 @@ Cost stack: compute (`rate × region_uplift × hours × machines`) + storage (`G
 + tiered egress (per-cloud, free allowance is a credit **inside** the first tier, not additive)
 + managed-platform uplift (% of compute) + labour (`hours × $/hr`).
 
-Support level is recommended from model size (≤13B Low / ≤70B Medium / >70B High → 20 / 60 / 160
+Support level is recommended from model size (≤13B Low / ≤70B Medium / >70B High → 10 / 20 / 30
 hours per month) and is user-overridable.
 
 ### Feature inventory — all of this must exist in the web app
