@@ -1104,7 +1104,9 @@ footer .wrap{padding:22px 20px 30px;max-width:1140px}
   "prefill": 10,
   "hoursMonth": 730,
   "verified": "September 2026",
-  "verifiedISO": "2026-09-02"
+  "verifiedISO": "2026-09-02",
+  "supStepDownHpd": 8,
+  "supStepUpMachines": 2
  }
 };</script>
 <script>// engine.js — the single calculation engine. Ported from, and tested against, the Excel workbook.
@@ -1139,9 +1141,13 @@ function egressCost(gb, cloud, rates) {
   return Math.max(gb - rates.egressFree[1], 0) * rates.egressAzure;
 }
 
-function supportLevel(pb, rates) {
+function supportLevel(pb, rates, hpd, machinesRunning) {
   const [t1, t2] = rates.supThresholds;
-  return pb <= t1 ? "Low" : pb <= t2 ? "Medium" : "High";
+  let i = pb <= t1 ? 1 : pb <= t2 ? 2 : 3;               // base: model size
+  if (hpd != null && hpd <= rates.supStepDownHpd) i -= 1; // sleeps at night -> lighter
+  if (machinesRunning != null && machinesRunning >= rates.supStepUpMachines) i += 1; // a fleet -> heavier
+  i = Math.max(1, Math.min(3, i));
+  return ["Low", "Medium", "High"][i - 1];
 }
 
 // p: {pb, prec, headroom, copies, cloud('both'|GCP|AZ), region, pricing('od'|'spot'|'1yr'),
@@ -1192,7 +1198,7 @@ function compute(p, data) {
   const storage = p.disk * copies * R.storage[p.diskType][cg];
   const egress = egressCost(p.egress, chosen.cloud, R);
   const managed = p.managed ? computeCost * R.managed[cg] : 0;
-  const level = p.supLevel || supportLevel(p.pb, R);
+  const level = p.supLevel || supportLevel(p.pb, R, p.hpd, copies);
   const supHours = p.supHours != null ? p.supHours : R.support[level];
   const labor = supHours * p.laborRate;
   const total = computeCost + storage + egress + managed + labor;
@@ -1308,7 +1314,7 @@ const FIELDS = [
   {k:"egress", label:"Data out to users (GB/month)", type:"num", step:100, why:"Only data leaving the cloud is charged"},
   {k:"managed", label:"Managed AI platform", type:"sel", opts:[["false","No — plain virtual machines"],["true","Yes — Vertex AI / Azure ML (~25% on compute)"]]},
   {g:"The people"},
-  {k:"supLevel", label:"Support level", type:"sel", opts:[["","Recommended from model size"],["Low","Low — 10 hrs/month"],["Medium","Medium — 20 hrs/month"],["High","High — 30 hrs/month"]]},
+  {k:"supLevel", label:"Support level", type:"sel", opts:[["","Recommended from size and usage"],["Low","Low — 10 hrs/month"],["Medium","Medium — 20 hrs/month"],["High","High — 30 hrs/month"]]},
   {k:"supHours", label:"Override support hours", type:"num", step:5, why:"Leave blank to use the level above", blank:true},
   {k:"laborRate", label:"Engineer cost per hour ($)", type:"num", step:1},
   {k:"apiHours", label:"Engineer hours if paying per token", type:"num", step:5, why:"Far less to look after than machines"},
